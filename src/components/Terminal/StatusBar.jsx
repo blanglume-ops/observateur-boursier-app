@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGame, selectPortfolioValue, selectTotalPnL } from '../../context/GameContext';
-import { formatCurrency, gameDate } from '../../utils/formatters';
+import { formatCurrency, formatCurrencyCompact, gameDate } from '../../utils/formatters';
 
 export default function StatusBar({ currentView, onViewChange }) {
   const { state, toggleMarket, toggleRunning } = useGame();
@@ -10,57 +10,50 @@ export default function StatusBar({ currentView, onViewChange }) {
 
   return (
     <div className="status-bar" style={{ fontSize: '11px', userSelect: 'none' }}>
-      {/* Logo */}
-      <span className="glow-orange" style={{ fontWeight: 700, letterSpacing: '0.15em', fontSize: '12px' }}>
+      {/* Logo — hide on very small screens */}
+      <span className="glow-orange status-hide-mobile" style={{ fontWeight: 700, letterSpacing: '0.15em', fontSize: '12px', whiteSpace: 'nowrap' }}>
         BLOOMBERG TERMINAL
       </span>
-
-      <span className="dim">│</span>
-
-      {/* Game date */}
-      <span style={{ color: '#888' }}>
-        {gameDate(state.gameDay)}
+      {/* Short logo on mobile */}
+      <span className="glow-orange status-show-mobile" style={{ fontWeight: 700, letterSpacing: '0.1em', fontSize: '11px', whiteSpace: 'nowrap' }}>
+        BB
       </span>
 
-      <span className="dim">│</span>
+      <span className="dim status-hide-mobile">│</span>
+
+      {/* Game date — hide on mobile */}
+      <span className="status-hide-mobile" style={{ color: '#888', whiteSpace: 'nowrap' }}>
+        {gameDate(state.gameDay)}
+      </span>
 
       {/* Market status */}
       <span
         className={`status-badge ${state.marketOpen ? 'open' : 'closed'}`}
         onClick={toggleMarket}
-        style={{ cursor: 'pointer' }}
-        title="Click to toggle market"
+        style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
+        title="Toggle market"
       >
-        {state.marketOpen ? '● MARKET OPEN' : '● MARKET CLOSED'}
+        {state.marketOpen ? '● MKT' : '● CLOS'}
       </span>
 
-      <span className="dim">│</span>
-
-      {/* Day counter */}
-      <span style={{ color: '#666' }}>DAY</span>
-      <span className="glow-amber" style={{ marginLeft: '4px' }}>
-        {String(state.gameDay).padStart(3, '0')}
+      {/* Day counter — hide on mobile */}
+      <span className="status-hide-mobile" style={{ color: '#666', whiteSpace: 'nowrap' }}>
+        DAY <span className="glow-amber">{String(state.gameDay).padStart(3, '0')}</span>
       </span>
 
-      <span className="dim">│</span>
-
-      {/* Net worth */}
-      <span style={{ color: '#888' }}>NAV:</span>
-      <span className="glow-orange" style={{ marginLeft: '4px', fontWeight: 700 }}>
-        {formatCurrency(totalValue)}
+      {/* Net worth — always visible, compact on mobile */}
+      <span style={{ color: '#888', whiteSpace: 'nowrap' }}>NAV:</span>
+      <span className="glow-orange" style={{ marginLeft: '2px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+        <span className="status-hide-mobile">{formatCurrency(totalValue)}</span>
+        <span className="status-show-mobile">{formatCurrencyCompact(totalValue)}</span>
       </span>
 
-      <span className="dim">│</span>
-
-      {/* P&L */}
-      <span style={{ color: '#888' }}>P&amp;L:</span>
+      {/* P&L — always visible */}
       <span
         className={totalPnL >= 0 ? 'glow-green' : 'glow-red'}
-        style={{ marginLeft: '4px', fontWeight: 700 }}
+        style={{ fontWeight: 700, whiteSpace: 'nowrap' }}
       >
-        {totalPnL >= 0 ? '+' : ''}{formatCurrency(totalPnL)}
-        {' '}
-        ({pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%)
+        {totalPnL >= 0 ? '+' : ''}{pnlPct.toFixed(1)}%
       </span>
 
       {/* Spacer */}
@@ -73,20 +66,24 @@ export default function StatusBar({ currentView, onViewChange }) {
           cursor: 'pointer',
           color: state.running ? '#39ff14' : '#ffaa00',
           fontSize: '10px',
-          letterSpacing: '0.1em',
-          padding: '1px 6px',
+          letterSpacing: '0.08em',
+          padding: '4px 8px',
           border: '1px solid',
           borderColor: state.running ? 'rgba(57,255,20,0.4)' : 'rgba(255,170,0,0.4)',
+          whiteSpace: 'nowrap',
+          minHeight: '28px',
+          display: 'flex',
+          alignItems: 'center',
         }}
         title={state.running ? 'Pause simulation' : 'Resume simulation'}
       >
-        {state.running ? '▶ LIVE' : '⏸ PAUSED'}
+        {state.running ? '▶' : '⏸'}
       </span>
 
-      <span className="dim">│</span>
-
-      {/* Clock */}
-      <LiveClock />
+      {/* Clock — hide on mobile */}
+      <span className="status-hide-mobile" style={{ marginLeft: '4px' }}>
+        <LiveClock />
+      </span>
     </div>
   );
 }

@@ -70,7 +70,7 @@ export default function Analytics() {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr 1fr', height: '100%', gap: '0', overflow: 'hidden' }}>
+    <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: 'auto 1fr 1fr', height: '100%', gap: '0', overflow: 'hidden' }}>
 
       {/* ── Risk Metrics Row ── */}
       <div
@@ -81,7 +81,7 @@ export default function Analytics() {
           <span>RISK ANALYTICS</span>
           <span className="panel-label">DAY {state.gameDay}</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
+        <div className="analytics-metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
           <RiskMetric label="TOTAL RETURN" value={`${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`} color={totalReturn >= 0 ? '#39ff14' : '#ff2222'} />
           <RiskMetric label="SHARPE RATIO" value={formatSharpe(sharpe)} color={sharpe > 1 ? '#39ff14' : sharpe > 0 ? '#ffaa00' : '#ff2222'} desc={sharpe > 1 ? 'EXCELLENT' : sharpe > 0 ? 'GOOD' : 'POOR'} />
           <RiskMetric label="MAX DRAWDOWN" value={`-${formatDrawdown(maxDD)}`} color={maxDD > 0.15 ? '#ff2222' : maxDD > 0.05 ? '#ffaa00' : '#39ff14'} />

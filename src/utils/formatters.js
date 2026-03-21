@@ -25,6 +25,16 @@ export function formatCurrency(value, compact = false) {
 }
 
 /**
+ * Always compact currency — for mobile status bar
+ */
+export function formatCurrencyCompact(value) {
+  if (value === null || value === undefined || isNaN(value)) return '--';
+  if (Math.abs(value) >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
+  if (Math.abs(value) >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
+  return `$${value.toFixed(0)}`;
+}
+
+/**
  * Format price — smart decimal places based on magnitude
  */
 export function formatPrice(value) {

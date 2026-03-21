@@ -21,13 +21,24 @@
   padding: 0;
 }
 
-html, body, #root {
+html, body {
   width: 100%;
   height: 100%;
+  /* Use dynamic viewport height to handle iOS Safari address bar */
+  height: 100dvh;
   background: #000000;
   color: var(--bb-orange);
   font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
   font-size: 13px;
+  overflow: hidden;
+  /* Prevent elastic overscroll on iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 

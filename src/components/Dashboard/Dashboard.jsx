@@ -24,7 +24,7 @@ export default function Dashboard({ onNavigate }) {
   const totalForAlloc = Object.values(allocationByClass).reduce((s, v) => s + v, 0);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', height: '100%', gap: '0' }}>
+    <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', height: '100%', gap: '0' }}>
 
       {/* ── TOP LEFT: Portfolio Summary ── */}
       <div className="terminal-panel" style={{ borderRight: '1px solid rgba(255,102,0,0.15)', borderBottom: '1px solid rgba(255,102,0,0.15)' }}>

@@ -57,21 +57,24 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
         </span>
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: 'flex', gap: '2px', padding: '4px 8px', borderBottom: '1px solid rgba(255,102,0,0.1)' }}>
+      {/* Filter tabs — scrollable on mobile */}
+      <div style={{ display: 'flex', gap: '2px', padding: '4px 8px', borderBottom: '1px solid rgba(255,102,0,0.1)', overflowX: 'auto', flexShrink: 0 }}>
         {FILTERS.map(f => (
           <button
             key={f.key}
             onClick={() => setFilter(f.key)}
             style={{
-              padding: '2px 10px',
+              padding: '6px 12px',
+              minHeight: '36px',
               background: filter === f.key ? 'rgba(255,102,0,0.2)' : 'transparent',
               border: filter === f.key ? '1px solid rgba(255,102,0,0.5)' : '1px solid rgba(255,255,255,0.1)',
               color: filter === f.key ? '#ff6600' : '#666',
               fontFamily: 'inherit',
-              fontSize: '10px',
+              fontSize: '11px',
               cursor: 'pointer',
               letterSpacing: '0.08em',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
             }}
           >
             {f.label}
@@ -81,21 +84,22 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
 
       {/* Table */}
       <div className="bb-scroll" style={{ flex: 1 }}>
-        <table className="bb-table" style={{ width: '100%' }}>
+        <table className="bb-table market-table-mobile" style={{ width: '100%' }}>
           <thead style={{ position: 'sticky', top: 0, background: '#060606', zIndex: 2 }}>
             <tr>
               {[
-                { key: 'ticker', label: 'TICKER / NAME', align: 'left' },
-                { key: null, label: 'CLASS', align: 'left' },
-                { key: 'currentPrice', label: 'LAST', align: 'right' },
-                { key: 'changePct', label: 'CHG %', align: 'right' },
-                { key: 'change', label: 'CHG $', align: 'right' },
-                { key: null, label: '60D CHART', align: 'center' },
-                { key: 'risk', label: 'RISK', align: 'right' },
+                { key: 'ticker', label: 'TICKER / NAME', align: 'left', mobile: true },
+                { key: null, label: 'CLASS', align: 'left', mobile: false },
+                { key: 'currentPrice', label: 'LAST', align: 'right', mobile: true },
+                { key: 'changePct', label: 'CHG %', align: 'right', mobile: true },
+                { key: 'change', label: 'CHG $', align: 'right', mobile: false },
+                { key: null, label: '60D', align: 'center', mobile: false },
+                { key: 'risk', label: 'RISK', align: 'right', mobile: false },
               ].map(col => (
                 <th
                   key={col.label}
                   onClick={() => col.key && handleSort(col.key)}
+                  className={col.mobile ? '' : 'market-col-hide'}
                   style={{
                     textAlign: col.align,
                     cursor: col.key ? 'pointer' : 'default',

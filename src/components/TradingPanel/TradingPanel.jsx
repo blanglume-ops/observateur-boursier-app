@@ -47,7 +47,7 @@ export default function TradingPanel() {
   const orderBook = generateOrderBook(asset?.currentPrice ?? 100);
 
   return (
-    <div style={{ display: 'flex', height: '100%', gap: '0' }}>
+    <div className="trade-split" style={{ display: 'flex', height: '100%', gap: '0', overflow: 'hidden' }}>
       {/* Left: Market list */}
       <div style={{ width: '55%', borderRight: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <MarketScreen

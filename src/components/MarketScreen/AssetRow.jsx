@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import Sparkline from './Sparkline';
-import { formatPrice, formatPct, changeClass } from '../../utils/formatters';
+import { formatPrice } from '../../utils/formatters';
 
 const RISK_LABELS = ['', '★', '★★', '★★★', '★★★★', '★★★★★'];
 
@@ -31,7 +31,7 @@ export default function AssetRow({ asset, selected, onClick }) {
         borderLeft: selected ? '2px solid #ff6600' : '2px solid transparent',
       }}
     >
-      {/* Ticker */}
+      {/* Ticker — always visible */}
       <td style={{ padding: '6px 8px', textAlign: 'left' }}>
         <div style={{ fontWeight: 700, color: '#ff6600', fontSize: '13px', letterSpacing: '0.05em' }}>
           {asset.ticker}
@@ -41,41 +41,35 @@ export default function AssetRow({ asset, selected, onClick }) {
         </div>
       </td>
 
-      {/* Class/Sector */}
-      <td style={{ padding: '6px 4px', textAlign: 'left' }}>
-        <span style={{
-          fontSize: '9px',
-          color: '#555',
-          border: '1px solid #333',
-          padding: '1px 4px',
-          letterSpacing: '0.06em',
-        }}>
+      {/* Class/Sector — hidden on mobile */}
+      <td className="market-col-hide" style={{ padding: '6px 4px', textAlign: 'left' }}>
+        <span style={{ fontSize: '9px', color: '#555', border: '1px solid #333', padding: '1px 4px', letterSpacing: '0.06em' }}>
           {asset.class}
         </span>
       </td>
 
-      {/* Price */}
+      {/* Price — always visible */}
       <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 700, color: '#fff', fontSize: '13px' }}>
         {formatPrice(asset.currentPrice)}
       </td>
 
-      {/* Change % */}
+      {/* Change % — always visible */}
       <td style={{ padding: '6px 8px', textAlign: 'right', color: changeColor, fontWeight: 700, fontSize: '12px' }}>
         {changeSign} {Math.abs(asset.changePct).toFixed(2)}%
       </td>
 
-      {/* Change $ */}
-      <td style={{ padding: '6px 8px', textAlign: 'right', color: changeColor, fontSize: '11px' }}>
+      {/* Change $ — hidden on mobile */}
+      <td className="market-col-hide" style={{ padding: '6px 8px', textAlign: 'right', color: changeColor, fontSize: '11px' }}>
         {asset.change >= 0 ? '+' : ''}{asset.change.toFixed(2)}
       </td>
 
-      {/* Sparkline */}
-      <td style={{ padding: '4px 8px', textAlign: 'center' }}>
+      {/* Sparkline — hidden on mobile */}
+      <td className="market-col-hide" style={{ padding: '4px 8px', textAlign: 'center' }}>
         <Sparkline history={asset.history} width={72} height={22} />
       </td>
 
-      {/* Risk */}
-      <td style={{ padding: '6px 8px', textAlign: 'right' }}>
+      {/* Risk — hidden on mobile */}
+      <td className="market-col-hide" style={{ padding: '6px 8px', textAlign: 'right' }}>
         <span style={{ color: '#ffaa00', fontSize: '10px', letterSpacing: '-1px' }}>
           {RISK_LABELS[asset.risk] ?? '?'}
         </span>
