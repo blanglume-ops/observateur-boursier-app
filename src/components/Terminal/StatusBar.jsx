@@ -33,12 +33,12 @@ export default function StatusBar({ currentView, onViewChange }) {
         style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
         title="Toggle market"
       >
-        {state.marketOpen ? '● MKT' : '● CLOS'}
+        {state.marketOpen ? '● OUV.' : '● FERM.'}
       </span>
 
       {/* Day counter — hide on mobile */}
       <span className="status-hide-mobile" style={{ color: '#666', whiteSpace: 'nowrap' }}>
-        DAY <span className="glow-amber">{String(state.gameDay).padStart(3, '0')}</span>
+        JOUR <span className="glow-amber">{String(state.gameDay).padStart(3, '0')}</span>
       </span>
 
       {/* Net worth — always visible, compact on mobile */}
@@ -75,7 +75,7 @@ export default function StatusBar({ currentView, onViewChange }) {
           display: 'flex',
           alignItems: 'center',
         }}
-        title={state.running ? 'Pause simulation' : 'Resume simulation'}
+        title={state.running ? 'Mettre en pause' : 'Reprendre la simulation'}
       >
         {state.running ? '▶' : '⏸'}
       </span>
@@ -96,7 +96,7 @@ function LiveClock() {
   }, []);
   return (
     <span className="glow-amber" style={{ letterSpacing: '0.05em' }}>
-      {time.toLocaleTimeString('en-US', { hour12: false })}
+      {time.toLocaleTimeString('fr-FR', { hour12: false })}
     </span>
   );
 }

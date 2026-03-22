@@ -148,7 +148,7 @@ function reducer(state, action) {
       const totalWithFee = totalCost + fee;
 
       if (totalWithFee > state.portfolio.cash) {
-        return { ...state, notification: { message: 'INSUFFICIENT FUNDS', type: 'error' } };
+        return { ...state, notification: { message: 'FONDS INSUFFISANTS', type: 'error' } };
       }
 
       const existing = state.portfolio.positions[ticker];
@@ -168,7 +168,7 @@ function reducer(state, action) {
           },
         },
         notification: {
-          message: `BUY ${shares} ${ticker} @ ${asset.currentPrice.toFixed(2)} — FEE: $${fee.toFixed(2)}`,
+          message: `ACHAT ${shares} ${ticker} @ ${asset.currentPrice.toFixed(2)} — FRAIS : $${fee.toFixed(2)}`,
           type: 'buy',
         },
       };
@@ -179,7 +179,7 @@ function reducer(state, action) {
       const asset = state.assets[ticker];
       const position = state.portfolio.positions[ticker];
       if (!asset || !position || position.shares < shares) {
-        return { ...state, notification: { message: 'INSUFFICIENT SHARES', type: 'error' } };
+        return { ...state, notification: { message: 'ACTIONS INSUFFISANTES', type: 'error' } };
       }
 
       const proceeds = asset.currentPrice * shares;
@@ -202,7 +202,7 @@ function reducer(state, action) {
           positions: newPositions,
         },
         notification: {
-          message: `SELL ${shares} ${ticker} @ ${asset.currentPrice.toFixed(2)} — NET: $${netProceeds.toFixed(2)}`,
+          message: `VENTE ${shares} ${ticker} @ ${asset.currentPrice.toFixed(2)} — NET : $${netProceeds.toFixed(2)}`,
           type: 'sell',
         },
       };

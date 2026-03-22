@@ -78,15 +78,15 @@ export default function Analytics() {
         style={{ gridColumn: '1 / -1', borderBottom: '1px solid rgba(255,102,0,0.15)' }}
       >
         <div className="terminal-panel-header">
-          <span>RISK ANALYTICS</span>
-          <span className="panel-label">DAY {state.gameDay}</span>
+          <span>ANALYSE DES RISQUES</span>
+          <span className="panel-label">JOUR {state.gameDay}</span>
         </div>
         <div className="analytics-metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
-          <RiskMetric label="TOTAL RETURN" value={`${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`} color={totalReturn >= 0 ? '#39ff14' : '#ff2222'} />
-          <RiskMetric label="SHARPE RATIO" value={formatSharpe(sharpe)} color={sharpe > 1 ? '#39ff14' : sharpe > 0 ? '#ffaa00' : '#ff2222'} desc={sharpe > 1 ? 'EXCELLENT' : sharpe > 0 ? 'GOOD' : 'POOR'} />
-          <RiskMetric label="MAX DRAWDOWN" value={`-${formatDrawdown(maxDD)}`} color={maxDD > 0.15 ? '#ff2222' : maxDD > 0.05 ? '#ffaa00' : '#39ff14'} />
-          <RiskMetric label="VAR (95%)" value={formatVaR(varValue)} color="#ffaa00" desc="1-DAY" />
-          <RiskMetric label="BETA vs SPY" value={formatBeta(beta)} color={Math.abs(beta - 1) < 0.3 ? '#39ff14' : '#ffaa00'} />
+          <RiskMetric label="RENDEMENT TOTAL" value={`${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`} color={totalReturn >= 0 ? '#39ff14' : '#ff2222'} />
+          <RiskMetric label="RATIO DE SHARPE" value={formatSharpe(sharpe)} color={sharpe > 1 ? '#39ff14' : sharpe > 0 ? '#ffaa00' : '#ff2222'} desc={sharpe > 1 ? 'EXCELLENT' : sharpe > 0 ? 'BON' : 'MAUVAIS'} />
+          <RiskMetric label="DRAWDOWN MAX" value={`-${formatDrawdown(maxDD)}`} color={maxDD > 0.15 ? '#ff2222' : maxDD > 0.05 ? '#ffaa00' : '#39ff14'} />
+          <RiskMetric label="VaR (95%)" value={formatVaR(varValue)} color="#ffaa00" desc="1 JOUR" />
+          <RiskMetric label="BÊTA vs SPY" value={formatBeta(beta)} color={Math.abs(beta - 1) < 0.3 ? '#39ff14' : '#ffaa00'} />
           <RiskMetric label="POSITIONS" value={String(positions.length)} color="#ff6600" />
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function Analytics() {
       {/* ── Equity Curve ── */}
       <div className="terminal-panel" style={{ borderRight: '1px solid rgba(255,102,0,0.15)', borderBottom: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>PORTFOLIO EQUITY CURVE</span>
+          <span>COURBE DU PORTEFEUILLE</span>
           <span className="panel-label">vs S&P 500</span>
         </div>
         <div style={{ flex: 1 }}>
@@ -120,8 +120,8 @@ export default function Analytics() {
               />
               <Tooltip
                 contentStyle={customTooltipStyle}
-                formatter={(val, name) => [formatCurrency(val), name === 'portfolio' ? 'PORTFOLIO' : 'S&P 500']}
-                labelFormatter={l => `DAY ${l}`}
+                formatter={(val, name) => [formatCurrency(val), name === 'portfolio' ? 'PORTEFEUILLE' : 'S&P 500']}
+                labelFormatter={l => `JOUR ${l}`}
               />
               <Area type="monotone" dataKey="portfolio" stroke="#ff6600" fill="url(#portfolioGrad)" strokeWidth={1.5} dot={false} />
               <Area type="monotone" dataKey="benchmark" stroke="#ffaa00" fill="url(#benchmarkGrad)" strokeWidth={1} dot={false} strokeDasharray="4 2" />
@@ -133,8 +133,8 @@ export default function Analytics() {
       {/* ── Allocation Pie ── */}
       <div className="terminal-panel" style={{ borderBottom: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>ASSET ALLOCATION</span>
-          <span className="panel-label">BY CLASS</span>
+          <span>RÉPARTITION DES ACTIFS</span>
+          <span className="panel-label">PAR CLASSE</span>
         </div>
         <div style={{ flex: 1 }}>
           {allocData.length > 0 ? (
@@ -156,13 +156,13 @@ export default function Analytics() {
                 </Pie>
                 <Tooltip
                   contentStyle={customTooltipStyle}
-                  formatter={(val) => [formatCurrency(val), 'VALUE']}
+                  formatter={(val) => [formatCurrency(val), 'VALEUR']}
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#444', fontSize: '12px' }}>
-              NO POSITIONS — ALL CASH
+              AUCUNE POSITION — 100% LIQUIDITÉS
             </div>
           )}
         </div>
@@ -171,8 +171,8 @@ export default function Analytics() {
       {/* ── Drawdown Chart ── */}
       <div className="terminal-panel" style={{ borderRight: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>DRAWDOWN ANALYSIS</span>
-          <span className="panel-label">% FROM PEAK</span>
+          <span>ANALYSE DU DRAWDOWN</span>
+          <span className="panel-label">% DEPUIS SOMMET</span>
         </div>
         <div style={{ flex: 1 }}>
           <ResponsiveContainer width="100%" height="100%">
@@ -185,7 +185,7 @@ export default function Analytics() {
               </defs>
               <XAxis dataKey="day" stroke="#333" tick={{ fill: '#555', fontSize: 9 }} tickLine={false} />
               <YAxis stroke="#333" tick={{ fill: '#555', fontSize: 9 }} tickLine={false} tickFormatter={v => `${v.toFixed(1)}%`} width={44} />
-              <Tooltip contentStyle={customTooltipStyle} formatter={val => [`${val.toFixed(2)}%`, 'DRAWDOWN']} labelFormatter={l => `DAY ${l}`} />
+              <Tooltip contentStyle={customTooltipStyle} formatter={val => [`${val.toFixed(2)}%`, 'DRAWDOWN']} labelFormatter={l => `JOUR ${l}`} />
               <Area type="monotone" dataKey="drawdown" stroke="#ff2222" fill="url(#ddGrad)" strokeWidth={1.5} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
@@ -195,23 +195,23 @@ export default function Analytics() {
       {/* ── Positions P&L ── */}
       <div className="terminal-panel" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>POSITIONS P&amp;L BREAKDOWN</span>
-          <span className="panel-label">{positions.length} OPEN</span>
+          <span>P&amp;L DES POSITIONS</span>
+          <span className="panel-label">{positions.length} OUVERTES</span>
         </div>
         <div className="bb-scroll" style={{ flex: 1 }}>
           {positions.length === 0 ? (
             <div style={{ color: '#444', padding: '20px', textAlign: 'center', fontSize: '12px' }}>
-              NO POSITIONS
+              AUCUNE POSITION
             </div>
           ) : (
             <table className="bb-table">
               <thead>
                 <tr>
                   <th style={{ textAlign: 'left' }}>TICKER</th>
-                  <th>SHARES</th>
-                  <th>VALUE</th>
-                  <th>UNREAL. P&amp;L</th>
-                  <th>RETURN</th>
+                  <th>ACTIONS</th>
+                  <th>VALEUR</th>
+                  <th>P&amp;L LATENT</th>
+                  <th>RENDEMENT</th>
                 </tr>
               </thead>
               <tbody>

@@ -20,16 +20,16 @@ export default function NewsFeed() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div className="terminal-panel-header">
-        <span>MARKET INTELLIGENCE — NEWS FEED</span>
-        <span className="panel-label">{state.news.length} ITEMS</span>
+        <span>INTELLIGENCE DE MARCHÉ — ACTUALITÉS</span>
+        <span className="panel-label">{state.news.length} ARTICLES</span>
       </div>
 
       {/* Live indicator */}
       <div style={{ padding: '4px 10px', background: '#050505', borderBottom: '1px solid rgba(255,102,0,0.1)', fontSize: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ color: '#39ff14', animation: 'blink 1s step-end infinite' }}>●</span>
-        <span style={{ color: '#555' }}>REAL-TIME NEWSFEED — AUTO-REFRESHING</span>
+        <span style={{ color: '#555' }}>FLUX EN DIRECT — ACTUALISATION AUTOMATIQUE</span>
         <span style={{ color: '#444', marginLeft: 'auto' }}>
-          BLOOMBERG L.P. SIMULATED INTELLIGENCE ENGINE
+          MOTEUR D'INTELLIGENCE SIMULÉE BLOOMBERG L.P.
         </span>
       </div>
 
@@ -37,9 +37,9 @@ export default function NewsFeed() {
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333', fontSize: '12px' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '24px', marginBottom: '12px' }}>📡</div>
-            <div>AWAITING MARKET INTELLIGENCE...</div>
+            <div>EN ATTENTE D'ACTUALITÉS...</div>
             <div style={{ color: '#444', fontSize: '10px', marginTop: '6px' }}>
-              SIMULATION RUNNING — NEWS WILL APPEAR SHORTLY
+              SIMULATION EN COURS — LES ACTUALITÉS APPARAÎTRONT BIENTÔT
             </div>
           </div>
         </div>
@@ -76,7 +76,7 @@ function NewsItem({ item }) {
 
         {/* Sentiment badge */}
         <span className={`news-badge ${item.sentiment}`}>
-          {item.sentiment === 'bullish' ? '▲ BULL' : item.sentiment === 'bearish' ? '▼ BEAR' : '◆ NEUT'}
+          {item.sentiment === 'bullish' ? '▲ HAUSSE' : item.sentiment === 'bearish' ? '▼ BAISSE' : '◆ NEUTRE'}
         </span>
 
         {/* Affected tickers */}
@@ -99,7 +99,7 @@ function NewsItem({ item }) {
 
       {/* Impact indicator */}
       <div style={{ marginTop: '3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '9px', color: '#555' }}>IMPACT:</span>
+        <span style={{ fontSize: '9px', color: '#555' }}>IMPACT :</span>
         <div style={{ display: 'flex', gap: '2px' }}>
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} style={{

@@ -1,10 +1,10 @@
 const FKEYS = [
-  { key: 'F1', label: 'PORTF', view: 'dashboard' },
-  { key: 'F2', label: 'MARKET', view: 'market' },
-  { key: 'F3', label: 'TRADE', view: 'trade' },
-  { key: 'F4', label: 'CHARTS', view: 'analytics' },
-  { key: 'F5', label: 'NEWS', view: 'news' },
-  { key: 'F6', label: 'GOALS', view: 'goals' },
+  { key: 'F1', label: 'PORTEF.', view: 'dashboard' },
+  { key: 'F2', label: 'MARCHÉS', view: 'market' },
+  { key: 'F3', label: 'TRADER', view: 'trade' },
+  { key: 'F4', label: 'GRAPH.', view: 'analytics' },
+  { key: 'F5', label: 'ACTUS', view: 'news' },
+  { key: 'F6', label: 'OBJECTIFS', view: 'goals' },
 ];
 
 export default function FunctionKeyBar({ currentView, onViewChange }) {
