@@ -7,7 +7,7 @@ const GameContext = createContext(null);
 
 // ── Initial State ──────────────────────────────────────────────────────────────
 export const STARTING_CASH = 100_000;
-const TICK_INTERVAL_MS = 2000; // 2 real seconds = 1 trading day
+const TICK_INTERVAL_MS = 6000; // 6 real seconds = 1 trading day
 const TRANSACTION_FEE = 0.0015; // 0.15%
 
 function buildInitialAssets() {

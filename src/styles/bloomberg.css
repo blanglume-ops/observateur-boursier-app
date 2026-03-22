@@ -24,14 +24,12 @@
   z-index: 9999;
 }
 
-/* Vignette + phosphor screen glow */
+/* Vignette — léger */
 .crt::before {
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.85) 100%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 106, 0, 0.015) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, transparent 65%, rgba(0, 0, 0, 0.5) 100%);
   pointer-events: none;
   z-index: 9998;
 }
@@ -74,8 +72,8 @@
 
 /* ── Terminal Panel ── */
 .terminal-panel {
-  background: #000000;
-  border: 1px solid rgba(255, 106, 0, 0.25);
+  background: #0c0c0c;
+  border: 1px solid rgba(255, 106, 0, 0.3);
   padding: 0;
   overflow: hidden;
 }
@@ -235,40 +233,48 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 11px;
+  color: #c8c8c8;
 }
 
 .bb-table th {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 3px 5px;
-  border-bottom: 1px solid rgba(255, 106, 0, 0.3);
+  padding: 4px 5px;
+  border-bottom: 1px solid rgba(255, 106, 0, 0.35);
   border-top: none;
   text-align: right;
   white-space: nowrap;
-  background: #030303;
+  background: #111111;
 }
 .bb-table th:first-child { text-align: left; }
 
 .bb-table td {
-  padding: 3px 5px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 5px 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   text-align: right;
   white-space: nowrap;
   font-size: 11px;
   letter-spacing: 0.01em;
+  color: #c8c8c8;
 }
 .bb-table td:first-child { text-align: left; }
 
+.bb-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
 .bb-table tr:hover td {
-  background: rgba(255, 106, 0, 0.06);
+  background: rgba(255, 106, 0, 0.08);
+  color: #ffffff;
 }
 
 .bb-table tr.selected td {
-  background: rgba(255, 106, 0, 0.12);
+  background: rgba(255, 106, 0, 0.14);
   border-left: 2px solid #FF6A00;
+  color: #ffffff;
 }
 
 /* ── Separator ── */
@@ -281,14 +287,14 @@
 /* ── Color Coding ── */
 .positive {
   color: #00FF66;
-  text-shadow: 0 0 6px rgba(0, 255, 102, 0.4);
+  text-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
 }
 .negative {
   color: #FF3B30;
-  text-shadow: 0 0 6px rgba(255, 59, 48, 0.4);
+  text-shadow: 0 0 5px rgba(255, 59, 48, 0.5);
 }
 .neutral  { color: #FFB300; }
-.dim      { color: #444; }
+.dim      { color: #666; }
 
 /* ── Risk Stars ── */
 .risk-star       { color: #FFB300; font-size: 9px; }
@@ -442,23 +448,23 @@
 
 /* ── Metric Card ── */
 .bb-metric {
-  padding: 5px 6px;
-  background: #020202;
-  border: 1px solid rgba(255, 106, 0, 0.12);
-  border-top: 2px solid rgba(255, 106, 0, 0.35);
+  padding: 6px 8px;
+  background: #111111;
+  border: 1px solid rgba(255, 106, 0, 0.2);
+  border-top: 2px solid rgba(255, 106, 0, 0.6);
 }
 .bb-metric-label {
-  color: rgba(255, 255, 255, 0.3);
-  font-size: 8px;
-  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 9px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 .bb-metric-value {
   font-size: 16px;
   font-weight: 700;
   color: #FF6A00;
-  text-shadow: 0 0 6px rgba(255, 106, 0, 0.5);
+  text-shadow: 0 0 8px rgba(255, 106, 0, 0.6);
 }
 
 /* ── Allocation Bar ── */
