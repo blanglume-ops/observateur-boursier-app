@@ -9,13 +9,13 @@ import {
 import { formatCurrency, formatSharpe, formatDrawdown, formatVaR, formatBeta } from '../../utils/formatters';
 
 const CHART_COLORS = {
-  portfolio: '#ff6600',
-  benchmark: '#ffaa00',
-  gain: '#39ff14',
-  loss: '#ff2222',
+  portfolio: '#FF6A00',
+  benchmark: '#FFB300',
+  gain: '#00FF66',
+  loss: '#FF3B30',
 };
 
-const PIE_COLORS = ['#ff6600', '#ffaa00', '#ff44ff', '#44aaff', '#39ff14', '#ffffff'];
+const PIE_COLORS = ['#FF6A00', '#FFB300', '#ff44ff', '#44aaff', '#00FF66', '#ffffff'];
 
 export default function Analytics() {
   const { state } = useGame();
@@ -64,7 +64,7 @@ export default function Analytics() {
   const customTooltipStyle = {
     background: '#080808',
     border: '1px solid rgba(255,102,0,0.3)',
-    color: '#ff6600',
+    color: '#FF6A00',
     fontSize: '11px',
     fontFamily: 'IBM Plex Mono, monospace',
   };
@@ -82,12 +82,12 @@ export default function Analytics() {
           <span className="panel-label">JOUR {state.gameDay}</span>
         </div>
         <div className="analytics-metrics-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px' }}>
-          <RiskMetric label="RENDEMENT TOTAL" value={`${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`} color={totalReturn >= 0 ? '#39ff14' : '#ff2222'} />
-          <RiskMetric label="RATIO DE SHARPE" value={formatSharpe(sharpe)} color={sharpe > 1 ? '#39ff14' : sharpe > 0 ? '#ffaa00' : '#ff2222'} desc={sharpe > 1 ? 'EXCELLENT' : sharpe > 0 ? 'BON' : 'MAUVAIS'} />
-          <RiskMetric label="DRAWDOWN MAX" value={`-${formatDrawdown(maxDD)}`} color={maxDD > 0.15 ? '#ff2222' : maxDD > 0.05 ? '#ffaa00' : '#39ff14'} />
-          <RiskMetric label="VaR (95%)" value={formatVaR(varValue)} color="#ffaa00" desc="1 JOUR" />
-          <RiskMetric label="BÊTA vs SPY" value={formatBeta(beta)} color={Math.abs(beta - 1) < 0.3 ? '#39ff14' : '#ffaa00'} />
-          <RiskMetric label="POSITIONS" value={String(positions.length)} color="#ff6600" />
+          <RiskMetric label="RENDEMENT TOTAL" value={`${totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}%`} color={totalReturn >= 0 ? '#00FF66' : '#FF3B30'} />
+          <RiskMetric label="RATIO DE SHARPE" value={formatSharpe(sharpe)} color={sharpe > 1 ? '#00FF66' : sharpe > 0 ? '#FFB300' : '#FF3B30'} desc={sharpe > 1 ? 'EXCELLENT' : sharpe > 0 ? 'BON' : 'MAUVAIS'} />
+          <RiskMetric label="DRAWDOWN MAX" value={`-${formatDrawdown(maxDD)}`} color={maxDD > 0.15 ? '#FF3B30' : maxDD > 0.05 ? '#FFB300' : '#00FF66'} />
+          <RiskMetric label="VaR (95%)" value={formatVaR(varValue)} color="#FFB300" desc="1 JOUR" />
+          <RiskMetric label="BÊTA vs SPY" value={formatBeta(beta)} color={Math.abs(beta - 1) < 0.3 ? '#00FF66' : '#FFB300'} />
+          <RiskMetric label="POSITIONS" value={String(positions.length)} color="#FF6A00" />
         </div>
       </div>
 
@@ -102,12 +102,12 @@ export default function Analytics() {
             <AreaChart data={equityData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
               <defs>
                 <linearGradient id="portfolioGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ff6600" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#ff6600" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#FF6A00" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#FF6A00" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="benchmarkGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ffaa00" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#ffaa00" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#FFB300" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#FFB300" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="day" stroke="#333" tick={{ fill: '#555', fontSize: 9 }} tickLine={false} />
@@ -123,8 +123,8 @@ export default function Analytics() {
                 formatter={(val, name) => [formatCurrency(val), name === 'portfolio' ? 'PORTEFEUILLE' : 'S&P 500']}
                 labelFormatter={l => `JOUR ${l}`}
               />
-              <Area type="monotone" dataKey="portfolio" stroke="#ff6600" fill="url(#portfolioGrad)" strokeWidth={1.5} dot={false} />
-              <Area type="monotone" dataKey="benchmark" stroke="#ffaa00" fill="url(#benchmarkGrad)" strokeWidth={1} dot={false} strokeDasharray="4 2" />
+              <Area type="monotone" dataKey="portfolio" stroke="#FF6A00" fill="url(#portfolioGrad)" strokeWidth={1.5} dot={false} />
+              <Area type="monotone" dataKey="benchmark" stroke="#FFB300" fill="url(#benchmarkGrad)" strokeWidth={1} dot={false} strokeDasharray="4 2" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -179,14 +179,14 @@ export default function Analytics() {
             <AreaChart data={drawdownData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
               <defs>
                 <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ff2222" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#ff2222" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#FF3B30" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#FF3B30" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="day" stroke="#333" tick={{ fill: '#555', fontSize: 9 }} tickLine={false} />
               <YAxis stroke="#333" tick={{ fill: '#555', fontSize: 9 }} tickLine={false} tickFormatter={v => `${v.toFixed(1)}%`} width={44} />
               <Tooltip contentStyle={customTooltipStyle} formatter={val => [`${val.toFixed(2)}%`, 'DRAWDOWN']} labelFormatter={l => `JOUR ${l}`} />
-              <Area type="monotone" dataKey="drawdown" stroke="#ff2222" fill="url(#ddGrad)" strokeWidth={1.5} dot={false} />
+              <Area type="monotone" dataKey="drawdown" stroke="#FF3B30" fill="url(#ddGrad)" strokeWidth={1.5} dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -217,7 +217,7 @@ export default function Analytics() {
               <tbody>
                 {positions.sort((a, b) => b.pnl - a.pnl).map(pos => (
                   <tr key={pos.ticker}>
-                    <td style={{ textAlign: 'left', color: '#ff6600', fontWeight: 700 }}>{pos.ticker}</td>
+                    <td style={{ textAlign: 'left', color: '#FF6A00', fontWeight: 700 }}>{pos.ticker}</td>
                     <td>{pos.shares}</td>
                     <td>{formatCurrency(pos.currentValue)}</td>
                     <td className={pos.pnl >= 0 ? 'positive' : 'negative'}>

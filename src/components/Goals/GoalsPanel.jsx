@@ -9,7 +9,7 @@ const GOALS = [
     description: 'Atteindre $120,000 — +20% de gain',
     target: STARTING_CASH * 1.2,
     icon: '★',
-    color: '#39ff14',
+    color: '#00FF66',
     reward: 'BADGE: APPRENTI TRADER',
   },
   {
@@ -19,7 +19,7 @@ const GOALS = [
     description: 'Atteindre $150,000 — +50% de gain',
     target: STARTING_CASH * 1.5,
     icon: '★★',
-    color: '#ffaa00',
+    color: '#FFB300',
     reward: 'BADGE: GESTIONNAIRE CONFIRMÉ',
   },
   {
@@ -29,7 +29,7 @@ const GOALS = [
     description: 'Atteindre $200,000 — +100% de gain',
     target: STARTING_CASH * 2.0,
     icon: '★★★',
-    color: '#ff6600',
+    color: '#FF6A00',
     reward: 'BADGE: HEDGE FUND MANAGER',
   },
 ];
@@ -95,7 +95,7 @@ export default function GoalsPanel() {
             <div
               key={goal.key}
               style={{
-                background: achieved ? `rgba(${goal.color === '#39ff14' ? '57,255,20' : goal.color === '#ffaa00' ? '255,170,0' : '255,102,0'},0.06)` : '#050505',
+                background: achieved ? `rgba(${goal.color === '#00FF66' ? '57,255,20' : goal.color === '#FFB300' ? '255,170,0' : '255,102,0'},0.06)` : '#050505',
                 border: `1px solid ${achieved ? goal.color + '55' : 'rgba(255,102,0,0.1)'}`,
                 padding: '12px',
                 marginBottom: '10px',
@@ -151,7 +151,7 @@ export default function GoalsPanel() {
             CONSEIL DU TRADER
           </div>
           <div style={{ background: 'rgba(255,170,0,0.04)', border: '1px solid rgba(255,170,0,0.15)', padding: '10px' }}>
-            <span style={{ color: '#ffaa00', fontSize: '11px', lineHeight: 1.6 }}>
+            <span style={{ color: '#FFB300', fontSize: '11px', lineHeight: 1.6 }}>
               💡 {TIPS[tipIdx]}
             </span>
           </div>
@@ -179,7 +179,7 @@ function StatRow({ label, value }) {
   return (
     <div style={{ background: 'rgba(255,102,0,0.03)', border: '1px solid rgba(255,102,0,0.08)', padding: '6px 8px' }}>
       <div style={{ color: '#555', fontSize: '10px', marginBottom: '2px' }}>{label.toUpperCase()}</div>
-      <div style={{ color: '#ff6600' }}>{value}</div>
+      <div style={{ color: '#FF6A00' }}>{value}</div>
     </div>
   );
 }

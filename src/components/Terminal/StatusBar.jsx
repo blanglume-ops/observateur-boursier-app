@@ -64,7 +64,7 @@ export default function StatusBar({ currentView, onViewChange }) {
         onClick={toggleRunning}
         style={{
           cursor: 'pointer',
-          color: state.running ? '#39ff14' : '#ffaa00',
+          color: state.running ? '#00FF66' : '#FFB300',
           fontSize: '10px',
           letterSpacing: '0.08em',
           padding: '4px 8px',

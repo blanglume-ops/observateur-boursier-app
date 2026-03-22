@@ -68,7 +68,7 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
               minHeight: '36px',
               background: filter === f.key ? 'rgba(255,102,0,0.2)' : 'transparent',
               border: filter === f.key ? '1px solid rgba(255,102,0,0.5)' : '1px solid rgba(255,255,255,0.1)',
-              color: filter === f.key ? '#ff6600' : '#666',
+              color: filter === f.key ? '#FF6A00' : '#666',
               fontFamily: 'inherit',
               fontSize: '11px',
               cursor: 'pointer',
@@ -104,7 +104,7 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
                     textAlign: col.align,
                     cursor: col.key ? 'pointer' : 'default',
                     padding: '5px 8px',
-                    color: col.key && sortKey === col.key ? '#ff6600' : 'rgba(255,255,255,0.4)',
+                    color: col.key && sortKey === col.key ? '#FF6A00' : 'rgba(255,255,255,0.4)',
                     userSelect: 'none',
                   }}
                 >

@@ -62,7 +62,7 @@ export default function TradingPanel() {
         <div className="terminal-panel-header">
           <span>SAISIE D'ORDRE</span>
           {asset && (
-            <span style={{ fontWeight: 400, color: '#ffaa00' }}>
+            <span style={{ fontWeight: 400, color: '#FFB300' }}>
               {asset.ticker} — {asset.name}
             </span>
           )}
@@ -79,7 +79,7 @@ export default function TradingPanel() {
                 </div>
                 <div className="bb-metric">
                   <div className="bb-metric-label">VAR. JOURNÉE</div>
-                  <div className="bb-metric-value" style={{ color: asset.changePct >= 0 ? '#39ff14' : '#ff2222', fontSize: '16px' }}>
+                  <div className="bb-metric-value" style={{ color: asset.changePct >= 0 ? '#00FF66' : '#FF3B30', fontSize: '16px' }}>
                     {asset.changePct >= 0 ? '+' : ''}{asset.changePct.toFixed(2)}%
                   </div>
                 </div>
@@ -139,7 +139,7 @@ export default function TradingPanel() {
                         ? (m.key === 'BUY' ? 'rgba(57,255,20,0.7)' : 'rgba(255,34,34,0.7)')
                         : 'rgba(255,255,255,0.1)',
                       color: mode === m.key
-                        ? (m.key === 'BUY' ? '#39ff14' : '#ff2222')
+                        ? (m.key === 'BUY' ? '#00FF66' : '#FF3B30')
                         : '#555',
                     }}
                   >
@@ -164,7 +164,7 @@ export default function TradingPanel() {
                         background: orderType === t.key ? 'rgba(255,102,0,0.15)' : 'transparent',
                         border: '1px solid',
                         borderColor: orderType === t.key ? 'rgba(255,102,0,0.5)' : 'rgba(255,255,255,0.1)',
-                        color: orderType === t.key ? '#ff6600' : '#555',
+                        color: orderType === t.key ? '#FF6A00' : '#555',
                         letterSpacing: '0.06em',
                       }}
                     >
@@ -203,7 +203,7 @@ export default function TradingPanel() {
                       padding: '5px 10px',
                       background: 'rgba(255,102,0,0.08)',
                       border: '1px solid rgba(255,102,0,0.3)',
-                      color: '#ff6600',
+                      color: '#FF6A00',
                       fontFamily: 'inherit',
                       fontSize: '10px',
                       cursor: 'pointer',
@@ -244,7 +244,7 @@ export default function TradingPanel() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
                     <span style={{ color: '#666' }}>FRAIS (0.15%)</span>
-                    <span style={{ color: '#ff6600' }}>{formatCurrency(fee)}</span>
+                    <span style={{ color: '#FF6A00' }}>{formatCurrency(fee)}</span>
                   </div>
                   <hr className="bb-sep" />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
@@ -253,7 +253,7 @@ export default function TradingPanel() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', color: '#555', fontSize: '10px' }}>
                     <span>CASH APRÈS</span>
-                    <span style={{ color: (state.portfolio.cash - (mode === 'BUY' ? totalWithFee : -totalWithFee)) < 0 ? '#ff2222' : '#888' }}>
+                    <span style={{ color: (state.portfolio.cash - (mode === 'BUY' ? totalWithFee : -totalWithFee)) < 0 ? '#FF3B30' : '#888' }}>
                       {formatCurrency(state.portfolio.cash - (mode === 'BUY' ? totalWithFee : -totalWithFee))}
                     </span>
                   </div>
@@ -271,7 +271,7 @@ export default function TradingPanel() {
               </button>
 
               <div style={{ marginTop: '8px', fontSize: '10px', color: '#444', textAlign: 'center' }}>
-                CASH DISPONIBLE : <span style={{ color: '#ff6600' }}>{formatCurrency(state.portfolio.cash)}</span>
+                CASH DISPONIBLE : <span style={{ color: '#FF6A00' }}>{formatCurrency(state.portfolio.cash)}</span>
               </div>
             </>
           )}
@@ -285,20 +285,20 @@ export default function TradingPanel() {
           <div style={{ display: 'flex', gap: '8px' }}>
             {/* Asks */}
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#ff4444', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>VENTE</div>
+              <div style={{ color: '#FF3B30', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>VENTE</div>
               {orderBook.asks.slice(0, 5).map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '1px' }}>
-                  <span style={{ color: '#ff4444' }}>{row.price.toFixed(2)}</span>
+                  <span style={{ color: '#FF3B30' }}>{row.price.toFixed(2)}</span>
                   <span style={{ color: '#444' }}>{row.size}</span>
                 </div>
               ))}
             </div>
             {/* Bids */}
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#39ff14', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>ACHAT</div>
+              <div style={{ color: '#00FF66', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>ACHAT</div>
               {orderBook.bids.slice(0, 5).map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '1px' }}>
-                  <span style={{ color: '#39ff14' }}>{row.price.toFixed(2)}</span>
+                  <span style={{ color: '#00FF66' }}>{row.price.toFixed(2)}</span>
                   <span style={{ color: '#444' }}>{row.size}</span>
                 </div>
               ))}

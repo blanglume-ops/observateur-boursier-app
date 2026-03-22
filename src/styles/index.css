@@ -4,15 +4,15 @@
 @import "./bloomberg.css";
 
 :root {
-  --bb-bg: #000000;
-  --bb-panel: #060606;
-  --bb-orange: #ff6600;
-  --bb-amber: #ffaa00;
-  --bb-green: #39ff14;
-  --bb-red: #ff2222;
-  --bb-white: #ffffff;
-  --bb-dim: #444444;
-  --bb-border: rgba(255, 102, 0, 0.2);
+  --bb-bg:      #000000;
+  --bb-panel:   #000000;
+  --bb-orange:  #FF6A00;
+  --bb-amber:   #FFB300;
+  --bb-green:   #00FF66;
+  --bb-red:     #FF3B30;
+  --bb-white:   #e8e8e8;
+  --bb-dim:     #444444;
+  --bb-border:  rgba(255, 106, 0, 0.25);
 }
 
 * {
@@ -24,16 +24,17 @@
 html, body {
   width: 100%;
   height: 100%;
-  /* Use dynamic viewport height to handle iOS Safari address bar */
   height: 100dvh;
   background: #000000;
   color: var(--bb-orange);
   font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.3;
   overflow: hidden;
-  /* Prevent elastic overscroll on iOS */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  /* Subtle phosphor screen tint */
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(255, 106, 0, 0.03) 0%, transparent 60%);
 }
 
 #root {
