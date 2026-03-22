@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/700.css";
+@import "./bloomberg.css";
+
+:root {
+  --bb-bg: #000000;
+  --bb-panel: #060606;
+  --bb-orange: #ff6600;
+  --bb-amber: #ffaa00;
+  --bb-green: #39ff14;
+  --bb-red: #ff2222;
+  --bb-white: #ffffff;
+  --bb-dim: #444444;
+  --bb-border: rgba(255, 102, 0, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  /* Use dynamic viewport height to handle iOS Safari address bar */
+  height: 100dvh;
+  background: #000000;
+  color: var(--bb-orange);
+  font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+  font-size: 13px;
+  overflow: hidden;
+  /* Prevent elastic overscroll on iOS */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #ff660055; }
+::-webkit-scrollbar-thumb:hover { background: #ff6600aa; }
+
+::selection {
+  background: rgba(255, 102, 0, 0.3);
+  color: #fff;
+}
