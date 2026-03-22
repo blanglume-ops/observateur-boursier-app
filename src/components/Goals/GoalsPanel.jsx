@@ -1,5 +1,5 @@
 import { useGame, selectPortfolioValue, STARTING_CASH } from '../../context/GameContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatPrice } from '../../utils/formatters';
 
 const GOALS = [
   {
@@ -48,9 +48,10 @@ const TIPS = [
 ];
 
 export default function GoalsPanel() {
-  const { state } = useGame();
+  const { state, resetGame } = useGame();
   const totalValue = selectPortfolioValue(state);
   const { goals } = state;
+  const tradeHistory = state.tradeHistory ?? [];
 
   const tipIdx = Math.floor((state.gameDay / 5)) % TIPS.length;
 
@@ -58,7 +59,24 @@ export default function GoalsPanel() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div className="terminal-panel-header">
         <span>OBJECTIFS & PROGRESSION</span>
-        <span className="panel-label">DAY {state.gameDay}</span>
+        <span className="panel-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>JOUR {state.gameDay}</span>
+          <span
+            onClick={resetGame}
+            style={{
+              cursor: 'pointer',
+              fontSize: '9px',
+              padding: '2px 6px',
+              background: 'rgba(255,59,48,0.15)',
+              border: '1px solid rgba(255,59,48,0.4)',
+              color: '#FF3B30',
+              letterSpacing: '0.06em',
+            }}
+            title="Réinitialiser la partie"
+          >
+            RÉINITIALISER
+          </span>
+        </span>
       </div>
 
       <div className="bb-scroll" style={{ flex: 1, padding: '10px' }}>
@@ -163,12 +181,59 @@ export default function GoalsPanel() {
             STATISTIQUES DU JEU
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
-            <StatRow label="Transactions" value={state.portfolio.history.length > 1 ? state.portfolio.history.length - 1 : 0} />
+            <StatRow label="Transactions" value={tradeHistory.length} />
             <StatRow label="Jours simulés" value={state.gameDay} />
             <StatRow label="Objectifs atteints" value={`${goals.achieved.length} / ${GOALS.length}`} />
             <StatRow label="Cash disponible" value={formatCurrency(state.portfolio.cash)} />
           </div>
         </div>
+
+        {/* Trade history */}
+        {tradeHistory.length > 0 && (
+          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,102,0,0.1)', paddingTop: '10px' }}>
+            <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.1em', marginBottom: '8px' }}>
+              HISTORIQUE DES TRANSACTIONS ({tradeHistory.length})
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="bb-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left' }}>JOUR</th>
+                    <th style={{ textAlign: 'left' }}>TYPE</th>
+                    <th style={{ textAlign: 'left' }}>TICKER</th>
+                    <th>QTÉ</th>
+                    <th>COURS</th>
+                    <th>MONTANT</th>
+                    <th>P&amp;L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tradeHistory.slice(0, 30).map(t => (
+                    <tr key={t.id}>
+                      <td style={{ textAlign: 'left', color: '#666' }}>{t.day}</td>
+                      <td style={{ textAlign: 'left' }}>
+                        <span style={{
+                          color: t.type === 'ACHAT' ? '#00FF66' : t.type === 'STOP-LOSS' ? '#FF3B30' : t.type === 'TAKE-PROFIT' ? '#FFB300' : '#FF3B30',
+                          fontWeight: 700,
+                          fontSize: '10px',
+                        }}>
+                          {t.type}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'left', color: '#FF6A00', fontWeight: 700 }}>{t.ticker}</td>
+                      <td>{t.shares}</td>
+                      <td>{formatPrice(t.price)}</td>
+                      <td>{formatCurrency(t.total)}</td>
+                      <td className={t.pnl === null ? '' : t.pnl >= 0 ? 'positive' : 'negative'}>
+                        {t.pnl === null ? '—' : `${t.pnl >= 0 ? '+' : ''}${formatCurrency(t.pnl)}`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -3,7 +3,7 @@ import { useGame, selectPortfolioValue, selectTotalPnL } from '../../context/Gam
 import { formatCurrency, formatCurrencyCompact, gameDate } from '../../utils/formatters';
 
 export default function StatusBar({ currentView, onViewChange }) {
-  const { state, toggleMarket, toggleRunning } = useGame();
+  const { state, toggleMarket, toggleRunning, speed, setSpeed } = useGame();
   const totalValue = selectPortfolioValue(state);
   const totalPnL = selectTotalPnL(state);
   const pnlPct = (totalPnL / 100000) * 100;
@@ -58,6 +58,32 @@ export default function StatusBar({ currentView, onViewChange }) {
 
       {/* Spacer */}
       <span style={{ flex: 1 }} />
+
+      {/* Speed control */}
+      <span className="status-hide-mobile" style={{ display: 'flex', gap: '2px', alignItems: 'center', marginRight: '4px' }}>
+        {[1, 2, 4].map(s => (
+          <span
+            key={s}
+            onClick={() => setSpeed(s)}
+            style={{
+              cursor: 'pointer',
+              fontSize: '10px',
+              padding: '3px 6px',
+              border: '1px solid',
+              borderColor: speed === s ? 'rgba(255,179,0,0.6)' : 'rgba(255,255,255,0.1)',
+              color: speed === s ? '#FFB300' : '#444',
+              background: speed === s ? 'rgba(255,179,0,0.08)' : 'transparent',
+              letterSpacing: '0.05em',
+              minHeight: '28px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+            title={`Vitesse ×${s}`}
+          >
+            ×{s}
+          </span>
+        ))}
+      </span>
 
       {/* Pause/Play */}
       <span

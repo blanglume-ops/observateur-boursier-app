@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { useGame, selectPositions } from '../../context/GameContext';
+import { useGame, selectPositions, TRANSACTION_FEE } from '../../context/GameContext';
 import { formatCurrency, formatPrice } from '../../utils/formatters';
 import MarketScreen from '../MarketScreen/MarketScreen';
 import Sparkline from '../MarketScreen/Sparkline';
 
-const TRANSACTION_FEE = 0.0015;
-
-export default function TradingPanel() {
-  const { state, buy, sell } = useGame();
-  const [selectedTicker, setSelectedTicker] = useState('AAPL');
+export default function TradingPanel({ selectedTicker: propTicker = 'AAPL', onSelectAsset }) {
+  const { state, buy, sell, setSLTP } = useGame();
+  const [localTicker, setLocalTicker] = useState(propTicker);
+  const selectedTicker = propTicker ?? localTicker;
   const [mode, setMode] = useState('BUY'); // 'BUY' | 'SELL'
   const [quantity, setQuantity] = useState('');
   const [orderType, setOrderType] = useState('MARKET');
+  const [stopLossInput, setStopLossInput] = useState('');
+  const [takeProfitInput, setTakeProfitInput] = useState('');
+  const [showSLTP, setShowSLTP] = useState(false);
 
   const asset = state.assets[selectedTicker];
   const positions = selectPositions(state);
@@ -22,14 +24,31 @@ export default function TradingPanel() {
   const fee = totalCost * TRANSACTION_FEE;
   const totalWithFee = mode === 'BUY' ? totalCost + fee : totalCost - fee;
 
+  const slValue = parseFloat(stopLossInput) || null;
+  const tpValue = parseFloat(takeProfitInput) || null;
+
   function handleTrade() {
     if (!asset || qty <= 0) return;
     if (mode === 'BUY') {
-      buy(selectedTicker, qty);
+      buy(selectedTicker, qty, slValue, tpValue);
     } else {
       sell(selectedTicker, qty);
     }
     setQuantity('');
+  }
+
+  function handleSetSLTP() {
+    if (!currentPosition) return;
+    setSLTP(selectedTicker, slValue, tpValue);
+  }
+
+  function handleSelectTicker(ticker) {
+    setLocalTicker(ticker);
+    if (onSelectAsset) onSelectAsset(ticker);
+    // Pre-fill SL/TP from existing position
+    const pos = state.portfolio.positions[ticker];
+    setStopLossInput(pos?.stopLoss ? String(pos.stopLoss) : '');
+    setTakeProfitInput(pos?.takeProfit ? String(pos.takeProfit) : '');
   }
 
   // Max qty based on mode
@@ -51,7 +70,7 @@ export default function TradingPanel() {
       {/* Left: Market list */}
       <div style={{ width: '55%', borderRight: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <MarketScreen
-          onSelectAsset={setSelectedTicker}
+          onSelectAsset={handleSelectTicker}
           selectedTicker={selectedTicker}
         />
       </div>
@@ -233,6 +252,78 @@ export default function TradingPanel() {
                     {n}
                   </button>
                 ))}
+              </div>
+
+              {/* Stop-Loss / Take-Profit */}
+              <div style={{ marginBottom: '10px' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showSLTP ? '8px' : '0' }}
+                  onClick={() => setShowSLTP(v => !v)}
+                >
+                  <div style={{ color: '#555', fontSize: '11px', letterSpacing: '0.1em' }}>
+                    STOP-LOSS / TAKE-PROFIT
+                    {currentPosition?.stopLoss && <span style={{ color: '#FF3B30', marginLeft: '6px' }}>SL:{formatPrice(currentPosition.stopLoss)}</span>}
+                    {currentPosition?.takeProfit && <span style={{ color: '#00FF66', marginLeft: '6px' }}>TP:{formatPrice(currentPosition.takeProfit)}</span>}
+                  </div>
+                  <span style={{ color: '#444', fontSize: '10px' }}>{showSLTP ? '▲' : '▼'}</span>
+                </div>
+                {showSLTP && (
+                  <div style={{ background: '#050505', border: '1px solid rgba(255,102,0,0.1)', padding: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#FF3B30', fontSize: '10px', marginBottom: '3px' }}>STOP-LOSS ($)</div>
+                        <input
+                          className="bb-input"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={stopLossInput}
+                          onChange={e => setStopLossInput(e.target.value)}
+                          placeholder="ex: 150.00"
+                          style={{ width: '100%', borderColor: stopLossInput ? 'rgba(255,59,48,0.5)' : undefined }}
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#00FF66', fontSize: '10px', marginBottom: '3px' }}>TAKE-PROFIT ($)</div>
+                        <input
+                          className="bb-input"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={takeProfitInput}
+                          onChange={e => setTakeProfitInput(e.target.value)}
+                          placeholder="ex: 200.00"
+                          style={{ width: '100%', borderColor: takeProfitInput ? 'rgba(0,255,102,0.5)' : undefined }}
+                        />
+                      </div>
+                    </div>
+                    {asset && (
+                      <div style={{ fontSize: '10px', color: '#444', marginBottom: '6px' }}>
+                        Cours actuel: <span style={{ color: '#FF6A00' }}>{formatPrice(asset.currentPrice)}</span>
+                        {slValue && slValue >= asset.currentPrice && <span style={{ color: '#FF3B30', marginLeft: '8px' }}>⚠ SL au-dessus du cours</span>}
+                        {tpValue && tpValue <= asset.currentPrice && <span style={{ color: '#FF3B30', marginLeft: '8px' }}>⚠ TP en-dessous du cours</span>}
+                      </div>
+                    )}
+                    {currentPosition && (
+                      <button
+                        onClick={handleSetSLTP}
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          background: 'rgba(255,102,0,0.08)',
+                          border: '1px solid rgba(255,102,0,0.3)',
+                          color: '#FF6A00',
+                          fontFamily: 'inherit',
+                          fontSize: '10px',
+                          cursor: 'pointer',
+                          letterSpacing: '0.06em',
+                        }}
+                      >
+                        METTRE À JOUR SL/TP
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Cost summary */}

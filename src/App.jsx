@@ -60,7 +60,7 @@ function ViewContent({ view, onNavigate, onSelectAsset, selectedTicker }) {
     case 'market':
       return <MarketScreen onSelectAsset={onSelectAsset} selectedTicker={selectedTicker} />;
     case 'trade':
-      return <TradingPanel />;
+      return <TradingPanel selectedTicker={selectedTicker} onSelectAsset={onSelectAsset} />;
     case 'analytics':
       return <Analytics />;
     case 'news':
