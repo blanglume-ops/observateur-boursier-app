@@ -29,51 +29,51 @@ export default function Dashboard({ onNavigate }) {
       {/* ── TOP LEFT: Portfolio Summary ── */}
       <div className="terminal-panel" style={{ borderRight: '1px solid rgba(255,102,0,0.15)', borderBottom: '1px solid rgba(255,102,0,0.15)' }}>
         <div className="terminal-panel-header">
-          <span>PORTFOLIO SUMMARY</span>
+          <span>RÉSUMÉ DU PORTEFEUILLE</span>
           <span className="panel-label">F1</span>
         </div>
 
         {/* Key metrics */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginBottom: '12px' }}>
-          <MetricBox label="NET ASSET VALUE" value={formatCurrency(totalValue)} color="#ff6600" big />
+          <MetricBox label="VALEUR NETTE" value={formatCurrency(totalValue)} color="#FF6A00" big />
           <MetricBox
-            label="TOTAL P&L"
+            label="P&L TOTAL"
             value={`${pnl >= 0 ? '+' : ''}${formatCurrency(pnl)}`}
-            color={pnl >= 0 ? '#39ff14' : '#ff2222'}
+            color={pnl >= 0 ? '#00FF66' : '#FF3B30'}
             big
           />
           <MetricBox
-            label="RETURN"
+            label="RENDEMENT"
             value={`${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`}
-            color={pnlPct >= 0 ? '#39ff14' : '#ff2222'}
+            color={pnlPct >= 0 ? '#00FF66' : '#FF3B30'}
             big
           />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px', marginBottom: '12px' }}>
-          <MetricBox label="CASH" value={formatCurrency(state.portfolio.cash)} color="#ffaa00" />
-          <MetricBox label="INVESTED" value={formatCurrency(totalValue - state.portfolio.cash)} color="#fff" />
-          <MetricBox label="POSITIONS" value={String(positions.length)} color="#ff6600" />
+          <MetricBox label="LIQUIDITÉS" value={formatCurrency(state.portfolio.cash)} color="#FFB300" />
+          <MetricBox label="INVESTI" value={formatCurrency(totalValue - state.portfolio.cash)} color="#fff" />
+          <MetricBox label="POSITIONS" value={String(positions.length)} color="#FF6A00" />
         </div>
 
         {/* vs Benchmark */}
         <div style={{ borderTop: '1px solid rgba(255,102,0,0.1)', paddingTop: '8px' }}>
-          <div style={{ fontSize: '10px', color: '#555', letterSpacing: '0.1em', marginBottom: '6px' }}>BENCHMARK COMPARISON — SPY</div>
+          <div style={{ fontSize: '10px', color: '#555', letterSpacing: '0.1em', marginBottom: '6px' }}>COMPARAISON INDICE — SPY</div>
           <div style={{ display: 'flex', gap: '16px', fontSize: '11px' }}>
             <div>
-              <span style={{ color: '#666' }}>PORTFOLIO: </span>
+              <span style={{ color: '#666' }}>PORTEF. : </span>
               <span className={pnlPct >= 0 ? 'positive' : 'negative'}>
                 {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
               </span>
             </div>
             <div>
-              <span style={{ color: '#666' }}>S&P 500: </span>
-              <span style={{ color: '#ffaa00' }}>
+              <span style={{ color: '#666' }}>S&P 500 : </span>
+              <span style={{ color: '#FFB300' }}>
                 {(((benchmarkValue - 100000) / 100000) * 100).toFixed(2)}%
               </span>
             </div>
             <div>
-              <span style={{ color: '#666' }}>ALPHA: </span>
+              <span style={{ color: '#666' }}>ALPHA : </span>
               <span className={pnlPct - (((benchmarkValue - 100000) / 100000) * 100) >= 0 ? 'positive' : 'negative'}>
                 {(pnlPct - (((benchmarkValue - 100000) / 100000) * 100)).toFixed(2)}%
               </span>
@@ -83,7 +83,7 @@ export default function Dashboard({ onNavigate }) {
 
         {/* Equity sparkline */}
         <div style={{ marginTop: '10px' }}>
-          <div style={{ fontSize: '10px', color: '#555', letterSpacing: '0.1em', marginBottom: '4px' }}>EQUITY CURVE</div>
+          <div style={{ fontSize: '10px', color: '#555', letterSpacing: '0.1em', marginBottom: '4px' }}>COURBE DES CAPITAUX</div>
           <Sparkline history={equityHistory} width={380} height={36} />
         </div>
       </div>
@@ -91,16 +91,16 @@ export default function Dashboard({ onNavigate }) {
       {/* ── TOP RIGHT: Positions ── */}
       <div className="terminal-panel" style={{ borderBottom: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>OPEN POSITIONS</span>
+          <span>POSITIONS OUVERTES</span>
           <span className="panel-label">{positions.length} POS</span>
         </div>
 
         <div className="bb-scroll" style={{ flex: 1 }}>
           {positions.length === 0 ? (
             <div style={{ color: '#444', padding: '20px', textAlign: 'center', fontSize: '12px' }}>
-              NO OPEN POSITIONS<br />
+              AUCUNE POSITION OUVERTE<br />
               <span style={{ fontSize: '10px', marginTop: '6px', display: 'block' }}>
-                PRESS F2 TO VIEW MARKETS | F3 TO TRADE
+                F2 MARCHÉS | F3 TRADER
               </span>
             </div>
           ) : (
@@ -108,10 +108,10 @@ export default function Dashboard({ onNavigate }) {
               <thead>
                 <tr>
                   <th style={{ textAlign: 'left' }}>TICKER</th>
-                  <th>SHARES</th>
-                  <th>AVG COST</th>
-                  <th>LAST</th>
-                  <th>VALUE</th>
+                  <th>ACTIONS</th>
+                  <th>PRX MOY.</th>
+                  <th>DERNIER</th>
+                  <th>VALEUR</th>
                   <th>P&amp;L</th>
                   <th>P&amp;L %</th>
                 </tr>
@@ -120,7 +120,7 @@ export default function Dashboard({ onNavigate }) {
                 {positions.map(pos => (
                   <tr key={pos.ticker}>
                     <td style={{ textAlign: 'left' }}>
-                      <span style={{ color: '#ff6600', fontWeight: 700 }}>{pos.ticker}</span>
+                      <span style={{ color: '#FF6A00', fontWeight: 700 }}>{pos.ticker}</span>
                     </td>
                     <td>{pos.shares}</td>
                     <td>{formatPrice(pos.avgCost)}</td>
@@ -143,8 +143,8 @@ export default function Dashboard({ onNavigate }) {
       {/* ── BOTTOM LEFT: Market Snapshot ── */}
       <div className="terminal-panel" style={{ borderRight: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>MARKET SNAPSHOT</span>
-          <span className="panel-label">TOP MOVERS</span>
+          <span>APERÇU DU MARCHÉ</span>
+          <span className="panel-label">TOP MOUVEMENTS</span>
         </div>
 
         <div className="bb-scroll" style={{ flex: 1 }}>
@@ -155,8 +155,8 @@ export default function Dashboard({ onNavigate }) {
       {/* ── BOTTOM RIGHT: Allocation ── */}
       <div className="terminal-panel" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-panel-header">
-          <span>ASSET ALLOCATION</span>
-          <span className="panel-label">BY CLASS</span>
+          <span>RÉPARTITION DES ACTIFS</span>
+          <span className="panel-label">PAR CLASSE</span>
         </div>
 
         <div style={{ flex: 1, padding: '8px', overflow: 'auto' }}>
@@ -165,10 +165,10 @@ export default function Dashboard({ onNavigate }) {
 
         {/* Quick navigation hint */}
         <div style={{ borderTop: '1px solid rgba(255,102,0,0.08)', padding: '6px 8px', fontSize: '10px', color: '#333', display: 'flex', gap: '12px' }}>
-          <span onClick={() => onNavigate('market')} style={{ cursor: 'pointer', color: '#555' }}>F2 MARKET</span>
-          <span onClick={() => onNavigate('trade')} style={{ cursor: 'pointer', color: '#555' }}>F3 TRADE</span>
-          <span onClick={() => onNavigate('analytics')} style={{ cursor: 'pointer', color: '#555' }}>F4 CHARTS</span>
-          <span onClick={() => onNavigate('news')} style={{ cursor: 'pointer', color: '#555' }}>F5 NEWS</span>
+          <span onClick={() => onNavigate('market')} style={{ cursor: 'pointer', color: '#555' }}>F2 MARCHÉS</span>
+          <span onClick={() => onNavigate('trade')} style={{ cursor: 'pointer', color: '#555' }}>F3 TRADER</span>
+          <span onClick={() => onNavigate('analytics')} style={{ cursor: 'pointer', color: '#555' }}>F4 GRAPHIQUES</span>
+          <span onClick={() => onNavigate('news')} style={{ cursor: 'pointer', color: '#555' }}>F5 ACTUS</span>
         </div>
       </div>
 
@@ -203,16 +203,16 @@ function TopMovers({ assets }) {
       <thead>
         <tr>
           <th style={{ textAlign: 'left' }}>TICKER</th>
-          <th>PRICE</th>
-          <th>CHG%</th>
-          <th>CHART</th>
+          <th>COURS</th>
+          <th>VAR.%</th>
+          <th>GRAPH.</th>
         </tr>
       </thead>
       <tbody>
         {list.map(asset => (
           <tr key={asset.ticker}>
             <td style={{ textAlign: 'left' }}>
-              <span style={{ color: '#ff6600', fontWeight: 700 }}>{asset.ticker}</span>
+              <span style={{ color: '#FF6A00', fontWeight: 700 }}>{asset.ticker}</span>
               <span style={{ color: '#444', fontSize: '10px', marginLeft: '6px' }}>{asset.class}</span>
             </td>
             <td style={{ color: '#fff' }}>{formatPrice(asset.currentPrice)}</td>
@@ -228,11 +228,11 @@ function TopMovers({ assets }) {
 }
 
 const CLASS_COLORS = {
-  STOCK: '#ff6600',
-  ETF: '#ffaa00',
+  STOCK: '#FF6A00',
+  ETF: '#FFB300',
   CRYPTO: '#ff44ff',
   COMMODITY: '#44aaff',
-  BOND: '#39ff14',
+  BOND: '#00FF66',
   CASH: '#ffffff',
 };
 

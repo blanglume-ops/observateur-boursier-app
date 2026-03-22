@@ -1,5 +1,5 @@
 import { useGame, selectPortfolioValue, STARTING_CASH } from '../../context/GameContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatPrice } from '../../utils/formatters';
 
 const GOALS = [
   {
@@ -9,7 +9,7 @@ const GOALS = [
     description: 'Atteindre $120,000 — +20% de gain',
     target: STARTING_CASH * 1.2,
     icon: '★',
-    color: '#39ff14',
+    color: '#00FF66',
     reward: 'BADGE: APPRENTI TRADER',
   },
   {
@@ -19,7 +19,7 @@ const GOALS = [
     description: 'Atteindre $150,000 — +50% de gain',
     target: STARTING_CASH * 1.5,
     icon: '★★',
-    color: '#ffaa00',
+    color: '#FFB300',
     reward: 'BADGE: GESTIONNAIRE CONFIRMÉ',
   },
   {
@@ -29,7 +29,7 @@ const GOALS = [
     description: 'Atteindre $200,000 — +100% de gain',
     target: STARTING_CASH * 2.0,
     icon: '★★★',
-    color: '#ff6600',
+    color: '#FF6A00',
     reward: 'BADGE: HEDGE FUND MANAGER',
   },
 ];
@@ -48,9 +48,10 @@ const TIPS = [
 ];
 
 export default function GoalsPanel() {
-  const { state } = useGame();
+  const { state, resetGame } = useGame();
   const totalValue = selectPortfolioValue(state);
   const { goals } = state;
+  const tradeHistory = state.tradeHistory ?? [];
 
   const tipIdx = Math.floor((state.gameDay / 5)) % TIPS.length;
 
@@ -58,7 +59,24 @@ export default function GoalsPanel() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <div className="terminal-panel-header">
         <span>OBJECTIFS & PROGRESSION</span>
-        <span className="panel-label">DAY {state.gameDay}</span>
+        <span className="panel-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span>JOUR {state.gameDay}</span>
+          <span
+            onClick={resetGame}
+            style={{
+              cursor: 'pointer',
+              fontSize: '9px',
+              padding: '2px 6px',
+              background: 'rgba(255,59,48,0.15)',
+              border: '1px solid rgba(255,59,48,0.4)',
+              color: '#FF3B30',
+              letterSpacing: '0.06em',
+            }}
+            title="Réinitialiser la partie"
+          >
+            RÉINITIALISER
+          </span>
+        </span>
       </div>
 
       <div className="bb-scroll" style={{ flex: 1, padding: '10px' }}>
@@ -95,7 +113,7 @@ export default function GoalsPanel() {
             <div
               key={goal.key}
               style={{
-                background: achieved ? `rgba(${goal.color === '#39ff14' ? '57,255,20' : goal.color === '#ffaa00' ? '255,170,0' : '255,102,0'},0.06)` : '#050505',
+                background: achieved ? `rgba(${goal.color === '#00FF66' ? '57,255,20' : goal.color === '#FFB300' ? '255,170,0' : '255,102,0'},0.06)` : '#050505',
                 border: `1px solid ${achieved ? goal.color + '55' : 'rgba(255,102,0,0.1)'}`,
                 padding: '12px',
                 marginBottom: '10px',
@@ -151,7 +169,7 @@ export default function GoalsPanel() {
             CONSEIL DU TRADER
           </div>
           <div style={{ background: 'rgba(255,170,0,0.04)', border: '1px solid rgba(255,170,0,0.15)', padding: '10px' }}>
-            <span style={{ color: '#ffaa00', fontSize: '11px', lineHeight: 1.6 }}>
+            <span style={{ color: '#FFB300', fontSize: '11px', lineHeight: 1.6 }}>
               💡 {TIPS[tipIdx]}
             </span>
           </div>
@@ -163,12 +181,59 @@ export default function GoalsPanel() {
             STATISTIQUES DU JEU
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px' }}>
-            <StatRow label="Transactions" value={state.portfolio.history.length > 1 ? state.portfolio.history.length - 1 : 0} />
+            <StatRow label="Transactions" value={tradeHistory.length} />
             <StatRow label="Jours simulés" value={state.gameDay} />
             <StatRow label="Objectifs atteints" value={`${goals.achieved.length} / ${GOALS.length}`} />
             <StatRow label="Cash disponible" value={formatCurrency(state.portfolio.cash)} />
           </div>
         </div>
+
+        {/* Trade history */}
+        {tradeHistory.length > 0 && (
+          <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,102,0,0.1)', paddingTop: '10px' }}>
+            <div style={{ fontSize: '11px', color: '#555', letterSpacing: '0.1em', marginBottom: '8px' }}>
+              HISTORIQUE DES TRANSACTIONS ({tradeHistory.length})
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="bb-table" style={{ width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left' }}>JOUR</th>
+                    <th style={{ textAlign: 'left' }}>TYPE</th>
+                    <th style={{ textAlign: 'left' }}>TICKER</th>
+                    <th>QTÉ</th>
+                    <th>COURS</th>
+                    <th>MONTANT</th>
+                    <th>P&amp;L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tradeHistory.slice(0, 30).map(t => (
+                    <tr key={t.id}>
+                      <td style={{ textAlign: 'left', color: '#666' }}>{t.day}</td>
+                      <td style={{ textAlign: 'left' }}>
+                        <span style={{
+                          color: t.type === 'ACHAT' ? '#00FF66' : t.type === 'STOP-LOSS' ? '#FF3B30' : t.type === 'TAKE-PROFIT' ? '#FFB300' : '#FF3B30',
+                          fontWeight: 700,
+                          fontSize: '10px',
+                        }}>
+                          {t.type}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'left', color: '#FF6A00', fontWeight: 700 }}>{t.ticker}</td>
+                      <td>{t.shares}</td>
+                      <td>{formatPrice(t.price)}</td>
+                      <td>{formatCurrency(t.total)}</td>
+                      <td className={t.pnl === null ? '' : t.pnl >= 0 ? 'positive' : 'negative'}>
+                        {t.pnl === null ? '—' : `${t.pnl >= 0 ? '+' : ''}${formatCurrency(t.pnl)}`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
@@ -179,7 +244,7 @@ function StatRow({ label, value }) {
   return (
     <div style={{ background: 'rgba(255,102,0,0.03)', border: '1px solid rgba(255,102,0,0.08)', padding: '6px 8px' }}>
       <div style={{ color: '#555', fontSize: '10px', marginBottom: '2px' }}>{label.toUpperCase()}</div>
-      <div style={{ color: '#ff6600' }}>{value}</div>
+      <div style={{ color: '#FF6A00' }}>{value}</div>
     </div>
   );
 }

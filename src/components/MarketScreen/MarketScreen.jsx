@@ -4,12 +4,12 @@ import { ASSET_CLASSES } from '../../data/assets';
 import AssetRow from './AssetRow';
 
 const FILTERS = [
-  { key: 'ALL', label: 'ALL' },
-  { key: ASSET_CLASSES.STOCK, label: 'STOCKS' },
+  { key: 'ALL', label: 'TOUS' },
+  { key: ASSET_CLASSES.STOCK, label: 'ACTIONS' },
   { key: ASSET_CLASSES.ETF, label: 'ETFs' },
   { key: ASSET_CLASSES.CRYPTO, label: 'CRYPTO' },
-  { key: ASSET_CLASSES.COMMODITY, label: 'CMDTY' },
-  { key: ASSET_CLASSES.BOND, label: 'BONDS' },
+  { key: ASSET_CLASSES.COMMODITY, label: 'MATIÈRES' },
+  { key: ASSET_CLASSES.BOND, label: 'OBLIG.' },
 ];
 
 const SORTS = [
@@ -49,11 +49,11 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Panel header */}
       <div className="terminal-panel-header">
-        <span>MARKET OVERVIEW — SECURITIES</span>
+        <span>APERÇU DU MARCHÉ — TITRES</span>
         <span style={{ display: 'flex', gap: '16px', fontSize: '10px', fontWeight: 400 }}>
-          <span className="positive">▲ {gainers} GAINERS</span>
-          <span className="negative">▼ {losers} LOSERS</span>
-          <span className="dim">{assets.length} SECURITIES</span>
+          <span className="positive">▲ {gainers} EN HAUSSE</span>
+          <span className="negative">▼ {losers} EN BAISSE</span>
+          <span className="dim">{assets.length} TITRES</span>
         </span>
       </div>
 
@@ -68,7 +68,7 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
               minHeight: '36px',
               background: filter === f.key ? 'rgba(255,102,0,0.2)' : 'transparent',
               border: filter === f.key ? '1px solid rgba(255,102,0,0.5)' : '1px solid rgba(255,255,255,0.1)',
-              color: filter === f.key ? '#ff6600' : '#666',
+              color: filter === f.key ? '#FF6A00' : '#666',
               fontFamily: 'inherit',
               fontSize: '11px',
               cursor: 'pointer',
@@ -88,13 +88,13 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
           <thead style={{ position: 'sticky', top: 0, background: '#060606', zIndex: 2 }}>
             <tr>
               {[
-                { key: 'ticker', label: 'TICKER / NAME', align: 'left', mobile: true },
-                { key: null, label: 'CLASS', align: 'left', mobile: false },
-                { key: 'currentPrice', label: 'LAST', align: 'right', mobile: true },
-                { key: 'changePct', label: 'CHG %', align: 'right', mobile: true },
-                { key: 'change', label: 'CHG $', align: 'right', mobile: false },
-                { key: null, label: '60D', align: 'center', mobile: false },
-                { key: 'risk', label: 'RISK', align: 'right', mobile: false },
+                { key: 'ticker', label: 'TICKER / NOM', align: 'left', mobile: true },
+                { key: null, label: 'CLASSE', align: 'left', mobile: false },
+                { key: 'currentPrice', label: 'DERNIER', align: 'right', mobile: true },
+                { key: 'changePct', label: 'VAR. %', align: 'right', mobile: true },
+                { key: 'change', label: 'VAR. $', align: 'right', mobile: false },
+                { key: null, label: '60J', align: 'center', mobile: false },
+                { key: 'risk', label: 'RISQUE', align: 'right', mobile: false },
               ].map(col => (
                 <th
                   key={col.label}
@@ -104,7 +104,7 @@ export default function MarketScreen({ onSelectAsset, selectedTicker }) {
                     textAlign: col.align,
                     cursor: col.key ? 'pointer' : 'default',
                     padding: '5px 8px',
-                    color: col.key && sortKey === col.key ? '#ff6600' : 'rgba(255,255,255,0.4)',
+                    color: col.key && sortKey === col.key ? '#FF6A00' : 'rgba(255,255,255,0.4)',
                     userSelect: 'none',
                   }}
                 >

@@ -3,7 +3,7 @@ import { useGame, selectPortfolioValue, selectTotalPnL } from '../../context/Gam
 import { formatCurrency, formatCurrencyCompact, gameDate } from '../../utils/formatters';
 
 export default function StatusBar({ currentView, onViewChange }) {
-  const { state, toggleMarket, toggleRunning } = useGame();
+  const { state, toggleMarket, toggleRunning, speed, setSpeed } = useGame();
   const totalValue = selectPortfolioValue(state);
   const totalPnL = selectTotalPnL(state);
   const pnlPct = (totalPnL / 100000) * 100;
@@ -33,12 +33,12 @@ export default function StatusBar({ currentView, onViewChange }) {
         style={{ cursor: 'pointer', whiteSpace: 'nowrap' }}
         title="Toggle market"
       >
-        {state.marketOpen ? '● MKT' : '● CLOS'}
+        {state.marketOpen ? '● OUV.' : '● FERM.'}
       </span>
 
       {/* Day counter — hide on mobile */}
       <span className="status-hide-mobile" style={{ color: '#666', whiteSpace: 'nowrap' }}>
-        DAY <span className="glow-amber">{String(state.gameDay).padStart(3, '0')}</span>
+        JOUR <span className="glow-amber">{String(state.gameDay).padStart(3, '0')}</span>
       </span>
 
       {/* Net worth — always visible, compact on mobile */}
@@ -59,12 +59,38 @@ export default function StatusBar({ currentView, onViewChange }) {
       {/* Spacer */}
       <span style={{ flex: 1 }} />
 
+      {/* Speed control */}
+      <span className="status-hide-mobile" style={{ display: 'flex', gap: '2px', alignItems: 'center', marginRight: '4px' }}>
+        {[1, 2, 4].map(s => (
+          <span
+            key={s}
+            onClick={() => setSpeed(s)}
+            style={{
+              cursor: 'pointer',
+              fontSize: '10px',
+              padding: '3px 6px',
+              border: '1px solid',
+              borderColor: speed === s ? 'rgba(255,179,0,0.6)' : 'rgba(255,255,255,0.1)',
+              color: speed === s ? '#FFB300' : '#444',
+              background: speed === s ? 'rgba(255,179,0,0.08)' : 'transparent',
+              letterSpacing: '0.05em',
+              minHeight: '28px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+            title={`Vitesse ×${s}`}
+          >
+            ×{s}
+          </span>
+        ))}
+      </span>
+
       {/* Pause/Play */}
       <span
         onClick={toggleRunning}
         style={{
           cursor: 'pointer',
-          color: state.running ? '#39ff14' : '#ffaa00',
+          color: state.running ? '#00FF66' : '#FFB300',
           fontSize: '10px',
           letterSpacing: '0.08em',
           padding: '4px 8px',
@@ -75,7 +101,7 @@ export default function StatusBar({ currentView, onViewChange }) {
           display: 'flex',
           alignItems: 'center',
         }}
-        title={state.running ? 'Pause simulation' : 'Resume simulation'}
+        title={state.running ? 'Mettre en pause' : 'Reprendre la simulation'}
       >
         {state.running ? '▶' : '⏸'}
       </span>
@@ -96,7 +122,7 @@ function LiveClock() {
   }, []);
   return (
     <span className="glow-amber" style={{ letterSpacing: '0.05em' }}>
-      {time.toLocaleTimeString('en-US', { hour12: false })}
+      {time.toLocaleTimeString('fr-FR', { hour12: false })}
     </span>
   );
 }

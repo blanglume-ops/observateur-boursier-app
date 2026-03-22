@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { useGame, selectPositions } from '../../context/GameContext';
+import { useGame, selectPositions, TRANSACTION_FEE } from '../../context/GameContext';
 import { formatCurrency, formatPrice } from '../../utils/formatters';
 import MarketScreen from '../MarketScreen/MarketScreen';
 import Sparkline from '../MarketScreen/Sparkline';
 
-const TRANSACTION_FEE = 0.0015;
-
-export default function TradingPanel() {
-  const { state, buy, sell } = useGame();
-  const [selectedTicker, setSelectedTicker] = useState('AAPL');
+export default function TradingPanel({ selectedTicker: propTicker = 'AAPL', onSelectAsset }) {
+  const { state, buy, sell, setSLTP } = useGame();
+  const [localTicker, setLocalTicker] = useState(propTicker);
+  const selectedTicker = propTicker ?? localTicker;
   const [mode, setMode] = useState('BUY'); // 'BUY' | 'SELL'
   const [quantity, setQuantity] = useState('');
   const [orderType, setOrderType] = useState('MARKET');
+  const [stopLossInput, setStopLossInput] = useState('');
+  const [takeProfitInput, setTakeProfitInput] = useState('');
+  const [showSLTP, setShowSLTP] = useState(false);
 
   const asset = state.assets[selectedTicker];
   const positions = selectPositions(state);
@@ -22,14 +24,31 @@ export default function TradingPanel() {
   const fee = totalCost * TRANSACTION_FEE;
   const totalWithFee = mode === 'BUY' ? totalCost + fee : totalCost - fee;
 
+  const slValue = parseFloat(stopLossInput) || null;
+  const tpValue = parseFloat(takeProfitInput) || null;
+
   function handleTrade() {
     if (!asset || qty <= 0) return;
     if (mode === 'BUY') {
-      buy(selectedTicker, qty);
+      buy(selectedTicker, qty, slValue, tpValue);
     } else {
       sell(selectedTicker, qty);
     }
     setQuantity('');
+  }
+
+  function handleSetSLTP() {
+    if (!currentPosition) return;
+    setSLTP(selectedTicker, slValue, tpValue);
+  }
+
+  function handleSelectTicker(ticker) {
+    setLocalTicker(ticker);
+    if (onSelectAsset) onSelectAsset(ticker);
+    // Pre-fill SL/TP from existing position
+    const pos = state.portfolio.positions[ticker];
+    setStopLossInput(pos?.stopLoss ? String(pos.stopLoss) : '');
+    setTakeProfitInput(pos?.takeProfit ? String(pos.takeProfit) : '');
   }
 
   // Max qty based on mode
@@ -51,7 +70,7 @@ export default function TradingPanel() {
       {/* Left: Market list */}
       <div style={{ width: '55%', borderRight: '1px solid rgba(255,102,0,0.15)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <MarketScreen
-          onSelectAsset={setSelectedTicker}
+          onSelectAsset={handleSelectTicker}
           selectedTicker={selectedTicker}
         />
       </div>
@@ -60,9 +79,9 @@ export default function TradingPanel() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0' }}>
         {/* Selected asset header */}
         <div className="terminal-panel-header">
-          <span>ORDER ENTRY</span>
+          <span>SAISIE D'ORDRE</span>
           {asset && (
-            <span style={{ fontWeight: 400, color: '#ffaa00' }}>
+            <span style={{ fontWeight: 400, color: '#FFB300' }}>
               {asset.ticker} — {asset.name}
             </span>
           )}
@@ -74,12 +93,12 @@ export default function TradingPanel() {
               {/* Asset Quick Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
                 <div className="bb-metric">
-                  <div className="bb-metric-label">LAST PRICE</div>
+                  <div className="bb-metric-label">DERNIER COURS</div>
                   <div className="bb-metric-value">{formatPrice(asset.currentPrice)}</div>
                 </div>
                 <div className="bb-metric">
-                  <div className="bb-metric-label">DAY CHANGE</div>
-                  <div className="bb-metric-value" style={{ color: asset.changePct >= 0 ? '#39ff14' : '#ff2222', fontSize: '16px' }}>
+                  <div className="bb-metric-label">VAR. JOURNÉE</div>
+                  <div className="bb-metric-value" style={{ color: asset.changePct >= 0 ? '#00FF66' : '#FF3B30', fontSize: '16px' }}>
                     {asset.changePct >= 0 ? '+' : ''}{asset.changePct.toFixed(2)}%
                   </div>
                 </div>
@@ -87,28 +106,28 @@ export default function TradingPanel() {
 
               {/* Sparkline */}
               <div style={{ background: '#050505', border: '1px solid rgba(255,102,0,0.1)', padding: '8px', marginBottom: '12px' }}>
-                <div style={{ color: '#555', fontSize: '10px', marginBottom: '4px', letterSpacing: '0.08em' }}>60D PRICE HISTORY</div>
+                <div style={{ color: '#555', fontSize: '10px', marginBottom: '4px', letterSpacing: '0.08em' }}>HISTORIQUE 60 JOURS</div>
                 <Sparkline history={asset.history} width={300} height={50} />
               </div>
 
               {/* Current position */}
               {currentPosition && (
                 <div style={{ background: 'rgba(255,102,0,0.05)', border: '1px solid rgba(255,102,0,0.15)', padding: '8px', marginBottom: '12px', fontSize: '11px' }}>
-                  <div style={{ color: '#888', marginBottom: '6px', letterSpacing: '0.1em' }}>CURRENT POSITION</div>
+                  <div style={{ color: '#888', marginBottom: '6px', letterSpacing: '0.1em' }}>POSITION EN COURS</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#666' }}>SHARES</span>
+                    <span style={{ color: '#666' }}>ACTIONS</span>
                     <span className="glow-orange">{currentPosition.shares}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#666' }}>AVG COST</span>
+                    <span style={{ color: '#666' }}>COÛT MOY.</span>
                     <span>{formatPrice(currentPosition.avgCost)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#666' }}>MARKET VALUE</span>
+                    <span style={{ color: '#666' }}>VALEUR DE MARCHÉ</span>
                     <span>{formatCurrency(currentPosition.currentValue)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#666' }}>UNREAL. P&amp;L</span>
+                    <span style={{ color: '#666' }}>P&amp;L LATENT</span>
                     <span className={currentPosition.pnl >= 0 ? 'positive' : 'negative'}>
                       {currentPosition.pnl >= 0 ? '+' : ''}{formatCurrency(currentPosition.pnl)}
                       {' '}({currentPosition.pnlPct >= 0 ? '+' : ''}{currentPosition.pnlPct.toFixed(2)}%)
@@ -119,10 +138,10 @@ export default function TradingPanel() {
 
               {/* Buy / Sell toggle */}
               <div style={{ display: 'flex', marginBottom: '10px', gap: '4px' }}>
-                {['BUY', 'SELL'].map(m => (
+                {[{ key: 'BUY', label: 'ACHETER' }, { key: 'SELL', label: 'VENDRE' }].map(m => (
                   <button
-                    key={m}
-                    onClick={() => setMode(m)}
+                    key={m.key}
+                    onClick={() => setMode(m.key)}
                     style={{
                       flex: 1,
                       padding: '8px',
@@ -132,48 +151,48 @@ export default function TradingPanel() {
                       letterSpacing: '0.1em',
                       cursor: 'pointer',
                       border: '1px solid',
-                      background: mode === m
-                        ? (m === 'BUY' ? 'rgba(57,255,20,0.15)' : 'rgba(255,34,34,0.15)')
+                      background: mode === m.key
+                        ? (m.key === 'BUY' ? 'rgba(57,255,20,0.15)' : 'rgba(255,34,34,0.15)')
                         : 'transparent',
-                      borderColor: mode === m
-                        ? (m === 'BUY' ? 'rgba(57,255,20,0.7)' : 'rgba(255,34,34,0.7)')
+                      borderColor: mode === m.key
+                        ? (m.key === 'BUY' ? 'rgba(57,255,20,0.7)' : 'rgba(255,34,34,0.7)')
                         : 'rgba(255,255,255,0.1)',
-                      color: mode === m
-                        ? (m === 'BUY' ? '#39ff14' : '#ff2222')
+                      color: mode === m.key
+                        ? (m.key === 'BUY' ? '#00FF66' : '#FF3B30')
                         : '#555',
                     }}
                   >
-                    {m}
+                    {m.label}
                   </button>
                 ))}
               </div>
 
               {/* Order type */}
               <div style={{ marginBottom: '10px', fontSize: '11px' }}>
-                <div style={{ color: '#555', marginBottom: '4px', letterSpacing: '0.1em' }}>ORDER TYPE</div>
+                <div style={{ color: '#555', marginBottom: '4px', letterSpacing: '0.1em' }}>TYPE D'ORDRE</div>
                 <div style={{ display: 'flex', gap: '4px' }}>
-                  {['MARKET', 'LIMIT'].map(t => (
+                  {[{ key: 'MARKET', label: 'MARCHÉ' }, { key: 'LIMIT', label: 'LIMITE' }].map(t => (
                     <button
-                      key={t}
-                      onClick={() => setOrderType(t)}
+                      key={t.key}
+                      onClick={() => setOrderType(t.key)}
                       style={{
                         padding: '3px 12px',
                         fontFamily: 'inherit',
                         fontSize: '10px',
                         cursor: 'pointer',
-                        background: orderType === t ? 'rgba(255,102,0,0.15)' : 'transparent',
+                        background: orderType === t.key ? 'rgba(255,102,0,0.15)' : 'transparent',
                         border: '1px solid',
-                        borderColor: orderType === t ? 'rgba(255,102,0,0.5)' : 'rgba(255,255,255,0.1)',
-                        color: orderType === t ? '#ff6600' : '#555',
+                        borderColor: orderType === t.key ? 'rgba(255,102,0,0.5)' : 'rgba(255,255,255,0.1)',
+                        color: orderType === t.key ? '#FF6A00' : '#555',
                         letterSpacing: '0.06em',
                       }}
                     >
-                      {t}
+                      {t.label}
                     </button>
                   ))}
                   {orderType === 'LIMIT' && (
                     <span style={{ color: '#555', fontSize: '10px', alignSelf: 'center', marginLeft: '4px' }}>
-                      (executes at market for simulation)
+                      (exécuté au marché en simulation)
                     </span>
                   )}
                 </div>
@@ -182,8 +201,8 @@ export default function TradingPanel() {
               {/* Quantity input */}
               <div style={{ marginBottom: '8px' }}>
                 <div style={{ color: '#555', fontSize: '11px', marginBottom: '4px', letterSpacing: '0.1em' }}>
-                  QUANTITY {mode === 'SELL' && currentPosition && (
-                    <span style={{ color: '#666' }}>/ MAX: {currentPosition.shares}</span>
+                  QUANTITÉ {mode === 'SELL' && currentPosition && (
+                    <span style={{ color: '#666' }}>/ MAX : {currentPosition.shares}</span>
                   )}
                 </div>
                 <div style={{ display: 'flex', gap: '4px' }}>
@@ -203,7 +222,7 @@ export default function TradingPanel() {
                       padding: '5px 10px',
                       background: 'rgba(255,102,0,0.08)',
                       border: '1px solid rgba(255,102,0,0.3)',
-                      color: '#ff6600',
+                      color: '#FF6A00',
                       fontFamily: 'inherit',
                       fontSize: '10px',
                       cursor: 'pointer',
@@ -235,25 +254,97 @@ export default function TradingPanel() {
                 ))}
               </div>
 
+              {/* Stop-Loss / Take-Profit */}
+              <div style={{ marginBottom: '10px' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', marginBottom: showSLTP ? '8px' : '0' }}
+                  onClick={() => setShowSLTP(v => !v)}
+                >
+                  <div style={{ color: '#555', fontSize: '11px', letterSpacing: '0.1em' }}>
+                    STOP-LOSS / TAKE-PROFIT
+                    {currentPosition?.stopLoss && <span style={{ color: '#FF3B30', marginLeft: '6px' }}>SL:{formatPrice(currentPosition.stopLoss)}</span>}
+                    {currentPosition?.takeProfit && <span style={{ color: '#00FF66', marginLeft: '6px' }}>TP:{formatPrice(currentPosition.takeProfit)}</span>}
+                  </div>
+                  <span style={{ color: '#444', fontSize: '10px' }}>{showSLTP ? '▲' : '▼'}</span>
+                </div>
+                {showSLTP && (
+                  <div style={{ background: '#050505', border: '1px solid rgba(255,102,0,0.1)', padding: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '6px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#FF3B30', fontSize: '10px', marginBottom: '3px' }}>STOP-LOSS ($)</div>
+                        <input
+                          className="bb-input"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={stopLossInput}
+                          onChange={e => setStopLossInput(e.target.value)}
+                          placeholder="ex: 150.00"
+                          style={{ width: '100%', borderColor: stopLossInput ? 'rgba(255,59,48,0.5)' : undefined }}
+                        />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#00FF66', fontSize: '10px', marginBottom: '3px' }}>TAKE-PROFIT ($)</div>
+                        <input
+                          className="bb-input"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={takeProfitInput}
+                          onChange={e => setTakeProfitInput(e.target.value)}
+                          placeholder="ex: 200.00"
+                          style={{ width: '100%', borderColor: takeProfitInput ? 'rgba(0,255,102,0.5)' : undefined }}
+                        />
+                      </div>
+                    </div>
+                    {asset && (
+                      <div style={{ fontSize: '10px', color: '#444', marginBottom: '6px' }}>
+                        Cours actuel: <span style={{ color: '#FF6A00' }}>{formatPrice(asset.currentPrice)}</span>
+                        {slValue && slValue >= asset.currentPrice && <span style={{ color: '#FF3B30', marginLeft: '8px' }}>⚠ SL au-dessus du cours</span>}
+                        {tpValue && tpValue <= asset.currentPrice && <span style={{ color: '#FF3B30', marginLeft: '8px' }}>⚠ TP en-dessous du cours</span>}
+                      </div>
+                    )}
+                    {currentPosition && (
+                      <button
+                        onClick={handleSetSLTP}
+                        style={{
+                          width: '100%',
+                          padding: '4px',
+                          background: 'rgba(255,102,0,0.08)',
+                          border: '1px solid rgba(255,102,0,0.3)',
+                          color: '#FF6A00',
+                          fontFamily: 'inherit',
+                          fontSize: '10px',
+                          cursor: 'pointer',
+                          letterSpacing: '0.06em',
+                        }}
+                      >
+                        METTRE À JOUR SL/TP
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {/* Cost summary */}
               {qty > 0 && (
                 <div style={{ background: '#050505', border: '1px solid rgba(255,102,0,0.1)', padding: '8px', marginBottom: '10px', fontSize: '11px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ color: '#666' }}>SUBTOTAL</span>
+                    <span style={{ color: '#666' }}>SOUS-TOTAL</span>
                     <span>{formatCurrency(totalCost)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ color: '#666' }}>FEE (0.15%)</span>
-                    <span style={{ color: '#ff6600' }}>{formatCurrency(fee)}</span>
+                    <span style={{ color: '#666' }}>FRAIS (0.15%)</span>
+                    <span style={{ color: '#FF6A00' }}>{formatCurrency(fee)}</span>
                   </div>
                   <hr className="bb-sep" />
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
-                    <span style={{ color: '#888' }}>{mode === 'BUY' ? 'TOTAL COST' : 'NET PROCEEDS'}</span>
+                    <span style={{ color: '#888' }}>{mode === 'BUY' ? 'COÛT TOTAL' : 'PRODUIT NET'}</span>
                     <span className="glow-orange">{formatCurrency(totalWithFee)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', color: '#555', fontSize: '10px' }}>
-                    <span>CASH AFTER</span>
-                    <span style={{ color: (state.portfolio.cash - (mode === 'BUY' ? totalWithFee : -totalWithFee)) < 0 ? '#ff2222' : '#888' }}>
+                    <span>CASH APRÈS</span>
+                    <span style={{ color: (state.portfolio.cash - (mode === 'BUY' ? totalWithFee : -totalWithFee)) < 0 ? '#FF3B30' : '#888' }}>
                       {formatCurrency(state.portfolio.cash - (mode === 'BUY' ? totalWithFee : -totalWithFee))}
                     </span>
                   </div>
@@ -267,11 +358,11 @@ export default function TradingPanel() {
                 disabled={qty <= 0}
                 style={{ width: '100%', opacity: qty <= 0 ? 0.4 : 1 }}
               >
-                {mode === 'BUY' ? '▲' : '▼'} {mode} {qty || 0} {selectedTicker}
+                {mode === 'BUY' ? '▲ ACHETER' : '▼ VENDRE'} {qty || 0} {selectedTicker}
               </button>
 
               <div style={{ marginTop: '8px', fontSize: '10px', color: '#444', textAlign: 'center' }}>
-                CASH AVAILABLE: <span style={{ color: '#ff6600' }}>{formatCurrency(state.portfolio.cash)}</span>
+                CASH DISPONIBLE : <span style={{ color: '#FF6A00' }}>{formatCurrency(state.portfolio.cash)}</span>
               </div>
             </>
           )}
@@ -280,25 +371,25 @@ export default function TradingPanel() {
         {/* Simulated Order Book */}
         <div style={{ borderTop: '1px solid rgba(255,102,0,0.1)', padding: '8px' }}>
           <div style={{ color: '#555', fontSize: '10px', letterSpacing: '0.1em', marginBottom: '6px' }}>
-            ORDER BOOK — {selectedTicker}
+            CARNET D'ORDRES — {selectedTicker}
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             {/* Asks */}
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#ff4444', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>ASK</div>
+              <div style={{ color: '#FF3B30', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>VENTE</div>
               {orderBook.asks.slice(0, 5).map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '1px' }}>
-                  <span style={{ color: '#ff4444' }}>{row.price.toFixed(2)}</span>
+                  <span style={{ color: '#FF3B30' }}>{row.price.toFixed(2)}</span>
                   <span style={{ color: '#444' }}>{row.size}</span>
                 </div>
               ))}
             </div>
             {/* Bids */}
             <div style={{ flex: 1 }}>
-              <div style={{ color: '#39ff14', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>BID</div>
+              <div style={{ color: '#00FF66', fontSize: '10px', marginBottom: '3px', letterSpacing: '0.08em' }}>ACHAT</div>
               {orderBook.bids.slice(0, 5).map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', marginBottom: '1px' }}>
-                  <span style={{ color: '#39ff14' }}>{row.price.toFixed(2)}</span>
+                  <span style={{ color: '#00FF66' }}>{row.price.toFixed(2)}</span>
                   <span style={{ color: '#444' }}>{row.size}</span>
                 </div>
               ))}

@@ -1,10 +1,10 @@
 const TABS = [
-  { key: 'dashboard', label: 'PORTF', icon: '▦' },
-  { key: 'market',    label: 'MARKET', icon: '◈' },
-  { key: 'trade',     label: 'TRADE',  icon: '⇅' },
-  { key: 'analytics', label: 'CHARTS', icon: '▲' },
-  { key: 'news',      label: 'NEWS',   icon: '◎' },
-  { key: 'goals',     label: 'GOALS',  icon: '★' },
+  { key: 'dashboard', label: 'PORTEF.', icon: '▦' },
+  { key: 'market',    label: 'MARCHÉS', icon: '◈' },
+  { key: 'trade',     label: 'TRADER',  icon: '⇅' },
+  { key: 'analytics', label: 'GRAPH.',  icon: '▲' },
+  { key: 'news',      label: 'ACTUS',   icon: '◎' },
+  { key: 'goals',     label: 'OBJECT.', icon: '★' },
 ];
 
 export default function MobileTabBar({ currentView, onViewChange }) {

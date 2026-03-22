@@ -1,15 +1,17 @@
-import { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import { INITIAL_ASSETS, TICKERS } from '../data/assets';
 import { nextPrice, generatePriceHistory, calcDayChange, applyNewsShock } from '../utils/priceSimulation';
 import { getRandomNews } from '../data/news';
 
 const GameContext = createContext(null);
 
-// ── Initial State ──────────────────────────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────────────────
 export const STARTING_CASH = 100_000;
-const TICK_INTERVAL_MS = 2000; // 2 real seconds = 1 trading day
-const TRANSACTION_FEE = 0.0015; // 0.15%
+export const TRANSACTION_FEE = 0.0015; // 0.15%
+const BASE_TICK_MS = 6000; // 6 real seconds = 1 trading day at ×1 speed
+const SAVE_KEY = 'jeu-finance-v3';
 
+// ── Asset Builder ──────────────────────────────────────────────────────────
 function buildInitialAssets() {
   const assets = {};
   for (const ticker of TICKERS) {
@@ -22,42 +24,43 @@ function buildInitialAssets() {
       change: 0,
       changePct: 0,
       history,
-      flashDirection: null, // 'up' | 'down' | null
+      flashDirection: null,
     };
   }
   return assets;
 }
 
+// ── Initial State ──────────────────────────────────────────────────────────
 const INITIAL_STATE = {
   gameDay: 0,
   marketOpen: true,
   running: true,
   portfolio: {
     cash: STARTING_CASH,
-    positions: {}, // { ticker: { shares, avgCost } }
-    history: [{ day: 0, value: STARTING_CASH }], // equity curve
-    dailyReturns: [], // for Sharpe/VaR calc
+    positions: {}, // { ticker: { shares, avgCost, stopLoss?, takeProfit? } }
+    history: [{ day: 0, value: STARTING_CASH }],
+    dailyReturns: [],
   },
   assets: buildInitialAssets(),
   news: [],
-  notification: null, // { message, type } for trade confirmations
+  notification: null,
+  tradeHistory: [], // [{ id, day, type, ticker, shares, price, total, pnl? }]
   goals: {
-    target1: STARTING_CASH * 1.2,  // +20%
-    target2: STARTING_CASH * 1.5,  // +50%
-    target3: STARTING_CASH * 2.0,  // +100% (légendaire)
+    target1: STARTING_CASH * 1.2,
+    target2: STARTING_CASH * 1.5,
+    target3: STARTING_CASH * 2.0,
     achieved: [],
   },
 };
 
-// ── Selectors (computed from state) ──────────────────────────────────────────
+// ── Selectors ──────────────────────────────────────────────────────────────
 export function selectPortfolioValue(state) {
-  const { portfolio, assets } = state;
   let invested = 0;
-  for (const [ticker, pos] of Object.entries(portfolio.positions)) {
-    const asset = assets[ticker];
+  for (const [ticker, pos] of Object.entries(state.portfolio.positions)) {
+    const asset = state.assets[ticker];
     if (asset) invested += asset.currentPrice * pos.shares;
   }
-  return portfolio.cash + invested;
+  return state.portfolio.cash + invested;
 }
 
 export function selectPositions(state) {
@@ -76,22 +79,78 @@ export function selectTotalPnL(state) {
 }
 
 export function selectBenchmarkValue(state) {
-  // SPY benchmark: started at 510.25, track its evolution
   const spy = state.assets.SPY;
   if (!spy) return STARTING_CASH;
-  const spyReturn = spy.currentPrice / INITIAL_ASSETS.SPY.price;
-  return STARTING_CASH * spyReturn;
+  return STARTING_CASH * (spy.currentPrice / INITIAL_ASSETS.SPY.price);
 }
 
-// ── Reducer ──────────────────────────────────────────────────────────────────
+// ── Helper: execute a sell in place (used for SL/TP and SELL_ASSET) ───────
+function executeSell(portfolio, assets, ticker, shares, day, reason) {
+  const asset = assets[ticker];
+  const pos = portfolio.positions[ticker];
+  if (!asset || !pos || pos.shares < shares) return null;
+
+  const proceeds = asset.currentPrice * shares;
+  const fee = proceeds * TRANSACTION_FEE;
+  const netProceeds = proceeds - fee;
+  const costBasis = pos.avgCost * shares;
+  const pnl = netProceeds - costBasis;
+  const remainingShares = pos.shares - shares;
+
+  const newPositions = { ...portfolio.positions };
+  if (remainingShares <= 0) {
+    delete newPositions[ticker];
+  } else {
+    newPositions[ticker] = { ...pos, shares: remainingShares };
+  }
+
+  const tradeEntry = {
+    id: Date.now() + Math.random(),
+    day,
+    type: reason, // 'VENTE', 'STOP-LOSS', 'TAKE-PROFIT'
+    ticker,
+    shares,
+    price: asset.currentPrice,
+    total: netProceeds,
+    pnl,
+  };
+
+  return {
+    newPortfolio: { ...portfolio, cash: portfolio.cash + netProceeds, positions: newPositions },
+    tradeEntry,
+    netProceeds,
+    notification: {
+      message: reason === 'VENTE'
+        ? `VENTE ${shares} ${ticker} @ $${asset.currentPrice.toFixed(2)} — NET : $${netProceeds.toFixed(2)}`
+        : `⚡ ${reason} déclenché — ${ticker} @ $${asset.currentPrice.toFixed(2)}`,
+      type: reason === 'STOP-LOSS' ? 'sell' : 'sell',
+    },
+  };
+}
+
+// ── Reducer ────────────────────────────────────────────────────────────────
 function reducer(state, action) {
   switch (action.type) {
 
     case 'TICK': {
-      const { newAssets, newsItem } = action.payload;
-      const newPortfolio = { ...state.portfolio };
+      const { newAssets, newsItem, autoSells } = action.payload;
+      let newPortfolio = { ...state.portfolio };
+      let newTradeHistory = state.tradeHistory;
+      let autoNotification = null;
 
-      // Compute new portfolio value
+      // Auto-execute Stop-Loss / Take-Profit
+      if (autoSells && autoSells.length > 0) {
+        for (const { ticker, shares, reason } of autoSells) {
+          const result = executeSell(newPortfolio, newAssets, ticker, shares, state.gameDay + 1, reason);
+          if (result) {
+            newPortfolio = result.newPortfolio;
+            newTradeHistory = [result.tradeEntry, ...newTradeHistory].slice(0, 200);
+            autoNotification = result.notification;
+          }
+        }
+      }
+
+      // Compute new portfolio value after auto-sells
       let invested = 0;
       for (const [ticker, pos] of Object.entries(newPortfolio.positions)) {
         const asset = newAssets[ticker];
@@ -101,29 +160,26 @@ function reducer(state, action) {
       const prevValue = newPortfolio.history[newPortfolio.history.length - 1]?.value ?? totalValue;
       const dailyReturn = prevValue > 0 ? (totalValue - prevValue) / prevValue : 0;
 
-      const newHistory = [...newPortfolio.history, { day: state.gameDay + 1, value: totalValue }];
-      const newDailyReturns = [...newPortfolio.dailyReturns, dailyReturn];
-
-      const updatedPortfolio = {
+      newPortfolio = {
         ...newPortfolio,
-        history: newHistory,
-        dailyReturns: newDailyReturns,
+        history: [...newPortfolio.history, { day: state.gameDay + 1, value: totalValue }],
+        dailyReturns: [...newPortfolio.dailyReturns, dailyReturn],
       };
 
-      // Check goal achievements
+      // Goal achievements
       const newAchieved = [...state.goals.achieved];
-      const goals = [
-        { key: 'g1', value: state.goals.target1, label: 'NIVEAU 1: +20%' },
-        { key: 'g2', value: state.goals.target2, label: 'NIVEAU 2: +50%' },
-        { key: 'g3', value: state.goals.target3, label: 'NIVEAU 3: +100%' },
+      const goalChecks = [
+        { key: 'g1', value: state.goals.target1 },
+        { key: 'g2', value: state.goals.target2 },
+        { key: 'g3', value: state.goals.target3 },
       ];
-      for (const g of goals) {
+      for (const g of goalChecks) {
         if (totalValue >= g.value && !newAchieved.includes(g.key)) {
           newAchieved.push(g.key);
         }
       }
 
-      // Add news to feed
+      // News
       const newNews = newsItem
         ? [{ ...newsItem, id: Date.now(), timestamp: new Date() }, ...state.news].slice(0, 30)
         : state.news;
@@ -132,14 +188,16 @@ function reducer(state, action) {
         ...state,
         gameDay: state.gameDay + 1,
         assets: newAssets,
-        portfolio: updatedPortfolio,
+        portfolio: newPortfolio,
         news: newNews,
+        tradeHistory: newTradeHistory,
         goals: { ...state.goals, achieved: newAchieved },
+        notification: autoNotification ?? state.notification,
       };
     }
 
     case 'BUY_ASSET': {
-      const { ticker, shares } = action.payload;
+      const { ticker, shares, stopLoss, takeProfit } = action.payload;
       const asset = state.assets[ticker];
       if (!asset) return state;
 
@@ -148,7 +206,7 @@ function reducer(state, action) {
       const totalWithFee = totalCost + fee;
 
       if (totalWithFee > state.portfolio.cash) {
-        return { ...state, notification: { message: 'INSUFFICIENT FUNDS', type: 'error' } };
+        return { ...state, notification: { message: 'FONDS INSUFFISANTS', type: 'error' } };
       }
 
       const existing = state.portfolio.positions[ticker];
@@ -157,6 +215,17 @@ function reducer(state, action) {
         ? (existing.avgCost * existing.shares + asset.currentPrice * shares) / newShares
         : asset.currentPrice;
 
+      const tradeEntry = {
+        id: Date.now() + Math.random(),
+        day: state.gameDay,
+        type: 'ACHAT',
+        ticker,
+        shares,
+        price: asset.currentPrice,
+        total: totalWithFee,
+        pnl: null,
+      };
+
       return {
         ...state,
         portfolio: {
@@ -164,11 +233,17 @@ function reducer(state, action) {
           cash: state.portfolio.cash - totalWithFee,
           positions: {
             ...state.portfolio.positions,
-            [ticker]: { shares: newShares, avgCost: newAvgCost },
+            [ticker]: {
+              shares: newShares,
+              avgCost: newAvgCost,
+              stopLoss: stopLoss || existing?.stopLoss || null,
+              takeProfit: takeProfit || existing?.takeProfit || null,
+            },
           },
         },
+        tradeHistory: [tradeEntry, ...state.tradeHistory].slice(0, 200),
         notification: {
-          message: `BUY ${shares} ${ticker} @ ${asset.currentPrice.toFixed(2)} — FEE: $${fee.toFixed(2)}`,
+          message: `ACHAT ${shares} ${ticker} @ $${asset.currentPrice.toFixed(2)} — FRAIS : $${fee.toFixed(2)}`,
           type: 'buy',
         },
       };
@@ -176,34 +251,30 @@ function reducer(state, action) {
 
     case 'SELL_ASSET': {
       const { ticker, shares } = action.payload;
-      const asset = state.assets[ticker];
-      const position = state.portfolio.positions[ticker];
-      if (!asset || !position || position.shares < shares) {
-        return { ...state, notification: { message: 'INSUFFICIENT SHARES', type: 'error' } };
+      const result = executeSell(state.portfolio, state.assets, ticker, shares, state.gameDay, 'VENTE');
+      if (!result) {
+        return { ...state, notification: { message: 'ACTIONS INSUFFISANTES', type: 'error' } };
       }
+      return {
+        ...state,
+        portfolio: result.newPortfolio,
+        tradeHistory: [result.tradeEntry, ...state.tradeHistory].slice(0, 200),
+        notification: result.notification,
+      };
+    }
 
-      const proceeds = asset.currentPrice * shares;
-      const fee = proceeds * TRANSACTION_FEE;
-      const netProceeds = proceeds - fee;
-      const remainingShares = position.shares - shares;
-
-      const newPositions = { ...state.portfolio.positions };
-      if (remainingShares <= 0) {
-        delete newPositions[ticker];
-      } else {
-        newPositions[ticker] = { ...position, shares: remainingShares };
-      }
-
+    case 'SET_SL_TP': {
+      const { ticker, stopLoss, takeProfit } = action.payload;
+      const pos = state.portfolio.positions[ticker];
+      if (!pos) return state;
       return {
         ...state,
         portfolio: {
           ...state.portfolio,
-          cash: state.portfolio.cash + netProceeds,
-          positions: newPositions,
-        },
-        notification: {
-          message: `SELL ${shares} ${ticker} @ ${asset.currentPrice.toFixed(2)} — NET: $${netProceeds.toFixed(2)}`,
-          type: 'sell',
+          positions: {
+            ...state.portfolio.positions,
+            [ticker]: { ...pos, stopLoss: stopLoss ?? null, takeProfit: takeProfit ?? null },
+          },
         },
       };
     }
@@ -217,18 +288,44 @@ function reducer(state, action) {
     case 'TOGGLE_RUNNING':
       return { ...state, running: !state.running };
 
+    case 'RESET_GAME':
+      return { ...INITIAL_STATE, assets: buildInitialAssets() };
+
     default:
       return state;
   }
 }
 
-// ── Provider ──────────────────────────────────────────────────────────────────
+// ── Provider ───────────────────────────────────────────────────────────────
 export function GameProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
+  // Load saved state from localStorage
+  const savedData = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Validate structure minimally
+      if (!parsed?.state?.portfolio || !parsed?.state?.assets) return null;
+      return parsed;
+    } catch { return null; }
+  }, []);
+
+  const [state, dispatch] = useReducer(reducer, savedData?.state ?? INITIAL_STATE);
+  const [speed, setSpeedState] = useState(savedData?.speed ?? 1);
+
   const stateRef = useRef(state);
   stateRef.current = state;
+  const speedRef = useRef(speed);
+  speedRef.current = speed;
 
-  // Simulation loop
+  // Auto-save on every state or speed change
+  useEffect(() => {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ state, speed }));
+    } catch { /* quota exceeded — ignore */ }
+  }, [state, speed]);
+
+  // Simulation loop — restarts when running state or speed changes
   useEffect(() => {
     if (!state.running) return;
 
@@ -236,7 +333,7 @@ export function GameProvider({ children }) {
       const current = stateRef.current;
       if (!current.running) return;
 
-      // Generate news every ~8 ticks (16 seconds)
+      // ~12% chance per tick to generate a news event
       const shouldGenerateNews = Math.random() < 0.12;
       const newsItem = shouldGenerateNews ? getRandomNews() : null;
 
@@ -246,10 +343,9 @@ export function GameProvider({ children }) {
         const asset = current.assets[ticker];
         let shockMult = 1;
 
-        // Apply news shock if this ticker is affected
         if (newsItem && (newsItem.affectedTickers.length === 0 || newsItem.affectedTickers.includes(ticker))) {
           const shock = applyNewsShock(newsItem.direction, newsItem.impact);
-          shockMult = Math.abs(shock - 1) * 10 + 1; // convert multiplier to volatility boost
+          shockMult = Math.abs(shock - 1) * 10 + 1;
         }
 
         const newPrice = current.marketOpen
@@ -258,7 +354,6 @@ export function GameProvider({ children }) {
 
         const change = newPrice - asset.prevPrice;
         const changePct = calcDayChange(newPrice, asset.prevPrice);
-        const newHistory = [...asset.history.slice(-59), newPrice];
 
         newAssets[ticker] = {
           ...asset,
@@ -266,24 +361,28 @@ export function GameProvider({ children }) {
           currentPrice: newPrice,
           change,
           changePct,
-          history: newHistory,
+          history: [...asset.history.slice(-59), newPrice],
           flashDirection: change > 0 ? 'up' : change < 0 ? 'down' : null,
         };
       }
 
-      dispatch({ type: 'TICK', payload: { newAssets, newsItem } });
-    }, TICK_INTERVAL_MS);
+      // Detect Stop-Loss / Take-Profit triggers
+      const autoSells = [];
+      for (const [ticker, pos] of Object.entries(current.portfolio.positions)) {
+        const newPrice = newAssets[ticker]?.currentPrice;
+        if (!newPrice || !pos.shares) continue;
+        if (pos.stopLoss && newPrice <= pos.stopLoss) {
+          autoSells.push({ ticker, shares: pos.shares, reason: 'STOP-LOSS' });
+        } else if (pos.takeProfit && newPrice >= pos.takeProfit) {
+          autoSells.push({ ticker, shares: pos.shares, reason: 'TAKE-PROFIT' });
+        }
+      }
+
+      dispatch({ type: 'TICK', payload: { newAssets, newsItem, autoSells } });
+    }, BASE_TICK_MS / speedRef.current);
 
     return () => clearInterval(interval);
-  }, [state.running]);
-
-  // Auto-clear flash direction after animation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Flash duration handled by CSS animation, no state needed
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [state.gameDay]);
+  }, [state.running, speed]);
 
   // Auto-clear notifications
   useEffect(() => {
@@ -293,13 +392,33 @@ export function GameProvider({ children }) {
     }
   }, [state.notification]);
 
-  const buy = useCallback((ticker, shares) => dispatch({ type: 'BUY_ASSET', payload: { ticker, shares } }), []);
-  const sell = useCallback((ticker, shares) => dispatch({ type: 'SELL_ASSET', payload: { ticker, shares } }), []);
+  const buy = useCallback((ticker, shares, stopLoss, takeProfit) =>
+    dispatch({ type: 'BUY_ASSET', payload: { ticker, shares, stopLoss, takeProfit } }), []);
+
+  const sell = useCallback((ticker, shares) =>
+    dispatch({ type: 'SELL_ASSET', payload: { ticker, shares } }), []);
+
+  const setSLTP = useCallback((ticker, stopLoss, takeProfit) =>
+    dispatch({ type: 'SET_SL_TP', payload: { ticker, stopLoss, takeProfit } }), []);
+
   const toggleMarket = useCallback(() => dispatch({ type: 'TOGGLE_MARKET' }), []);
   const toggleRunning = useCallback(() => dispatch({ type: 'TOGGLE_RUNNING' }), []);
 
+  const setSpeed = useCallback((s) => setSpeedState(s), []);
+
+  const resetGame = useCallback(() => {
+    try { localStorage.removeItem(SAVE_KEY); } catch {}
+    dispatch({ type: 'RESET_GAME' });
+  }, []);
+
   return (
-    <GameContext.Provider value={{ state, dispatch, buy, sell, toggleMarket, toggleRunning }}>
+    <GameContext.Provider value={{
+      state, dispatch,
+      buy, sell, setSLTP,
+      toggleMarket, toggleRunning,
+      speed, setSpeed,
+      resetGame,
+    }}>
       {children}
     </GameContext.Provider>
   );
@@ -310,5 +429,3 @@ export function useGame() {
   if (!ctx) throw new Error('useGame must be used within GameProvider');
   return ctx;
 }
-
-export { TRANSACTION_FEE };

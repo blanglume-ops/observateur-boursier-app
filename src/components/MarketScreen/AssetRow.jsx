@@ -18,7 +18,7 @@ export default function AssetRow({ asset, selected, onClick }) {
     }
   }, [asset.currentPrice]);
 
-  const changeColor = asset.changePct >= 0 ? '#39ff14' : '#ff2222';
+  const changeColor = asset.changePct >= 0 ? '#00FF66' : '#FF3B30';
   const changeSign = asset.changePct >= 0 ? '▲' : '▼';
 
   return (
@@ -28,12 +28,12 @@ export default function AssetRow({ asset, selected, onClick }) {
       style={{
         cursor: 'pointer',
         background: selected ? 'rgba(255,102,0,0.08)' : 'transparent',
-        borderLeft: selected ? '2px solid #ff6600' : '2px solid transparent',
+        borderLeft: selected ? '2px solid #FF6A00' : '2px solid transparent',
       }}
     >
       {/* Ticker — always visible */}
       <td style={{ padding: '6px 8px', textAlign: 'left' }}>
-        <div style={{ fontWeight: 700, color: '#ff6600', fontSize: '13px', letterSpacing: '0.05em' }}>
+        <div style={{ fontWeight: 700, color: '#FF6A00', fontSize: '13px', letterSpacing: '0.05em' }}>
           {asset.ticker}
         </div>
         <div style={{ color: '#555', fontSize: '10px', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -70,7 +70,7 @@ export default function AssetRow({ asset, selected, onClick }) {
 
       {/* Risk — hidden on mobile */}
       <td className="market-col-hide" style={{ padding: '6px 8px', textAlign: 'right' }}>
-        <span style={{ color: '#ffaa00', fontSize: '10px', letterSpacing: '-1px' }}>
+        <span style={{ color: '#FFB300', fontSize: '10px', letterSpacing: '-1px' }}>
           {RISK_LABELS[asset.risk] ?? '?'}
         </span>
       </td>
